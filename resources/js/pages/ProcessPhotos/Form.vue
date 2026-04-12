@@ -1,10 +1,11 @@
-<!-- resources/js/Pages/Dashboard/ProcessPhotos.vue -->
+<!-- resources/js/Pages/ProcessPhotos/Form.vue -->
 <script setup>
-
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { router } from '@inertiajs/vue3'
+import ImageCompressionSetting from '../../components/ProcessPhotoFormPartials/ImageCompressionSetting.vue'
+import ImageMaxResolutionSetting from '../../components/ProcessPhotoFormPartials/ImageMaxResolutionSetting.vue'
 
 const breadcrumbs = [
     {
@@ -28,6 +29,21 @@ const selectedFiles = ref([])
 const isProcessing = ref(false)
 const fileInput = ref(null)
 
+// Параметры обработки
+const processingOptions = reactive({
+    compression: 80, // 10–90%
+    max_resolution: {},
+    thumbnails: [],
+    watermark: {
+        enabled: false,
+        type: 'text', // 'text' или 'image'
+        position: 'bottom-right', // 'top-left', 'center', 'bottom-right', etc.
+        opacity: 50, // 0–100%
+        text: '',
+        image_url: null,
+    }
+})
+
 // Обработка выбора файлов
 const handleFileSelect = (event) => {
     const files = Array.from(event.target.files)
@@ -47,7 +63,6 @@ const handleFileSelect = (event) => {
         }
     })
 
-    // Очищаем input
     if (fileInput.value) {
         fileInput.value.value = ''
     }
@@ -72,9 +87,28 @@ const submitForm = () => {
     if (!selectedFiles.value.length) return
 
     const formData = new FormData()
+
+    // Файлы
     selectedFiles.value.forEach((item, index) => {
         formData.append(`photos[${index}]`, item.file)
     })
+
+    // Параметры
+    formData.append('compression', processingOptions.compression)
+    formData.append('max_resolution', processingOptions.max_resolution)
+    formData.append('thumbnails', JSON.stringify(processingOptions.thumbnails))
+
+    // Водяной знак
+    formData.append('watermark_enabled', processingOptions.watermark.enabled)
+    if (processingOptions.watermark.enabled) {
+        formData.append('watermark_type', processingOptions.watermark.type)
+        formData.append('watermark_position', processingOptions.watermark.position)
+        formData.append('watermark_opacity', processingOptions.watermark.opacity)
+        if (processingOptions.watermark.type === 'text') {
+            formData.append('watermark_text', processingOptions.watermark.text)
+        }
+        // Если водяной знак — картинка, можно будет загрузить отдельно
+    }
 
     isProcessing.value = true
 
@@ -92,7 +126,7 @@ const submitForm = () => {
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Process Photos" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto px-4 py-8">
@@ -101,7 +135,7 @@ const submitForm = () => {
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h1 class="text-2xl font-bold mb-4">Обработка фотографий</h1>
                     <p class="text-gray-600">
-                        Загрузите фотографии для сжатия без потери качества
+                        Загрузите фотографии и настройте параметры обработки
                     </p>
                 </div>
 
@@ -113,7 +147,8 @@ const submitForm = () => {
                 <!-- Форма загрузки -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <form @submit.prevent="submitForm">
-                        <div class="mb-4">
+                        <!-- Загрузка файлов -->
+                        <div class="mb-6">
                             <label class="block text-gray-700 font-bold mb-2">
                                 Выберите фотографии
                             </label>
@@ -130,24 +165,114 @@ const submitForm = () => {
                             <p class="text-sm text-gray-500 mt-1">
                                 Можно выбрать несколько фотографий. Поддерживаются: JPEG, PNG, GIF. Макс. размер: 10MB
                             </p>
+
+                            <!-- Превью -->
+                            <div v-if="selectedFiles.length" class="mt-4">
+                                <h3 class="font-bold mb-2">Выбранные файлы ({{ selectedFiles.length }})</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div v-for="(file, index) in selectedFiles" :key="index" class="relative">
+                                        <img :src="file.preview" class="w-full h-32 object-cover rounded border" />
+                                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
+                                            {{ formatFileSize(file.size) }}
+                                        </div>
+                                        <button
+                                            @click="removeFile(index)"
+                                            type="button"
+                                            class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Превью -->
-                        <div v-if="selectedFiles.length" class="mb-4">
-                            <h3 class="font-bold mb-2">Выбранные файлы ({{ selectedFiles.length }})</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div v-for="(file, index) in selectedFiles" :key="index" class="relative">
-                                    <img :src="file.preview" class="w-full h-32 object-cover rounded border" />
-                                    <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
-                                        {{ formatFileSize(file.size) }}
-                                    </div>
-                                    <button
-                                        @click="removeFile(index)"
-                                        type="button"
-                                        class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        <!-- Параметры обработки -->
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                            <h3 class="text-lg font-semibold mb-4">Настройки обработки</h3>
+
+                            <!-- Степень сжатия -->
+                            <ImageCompressionSetting v-model="processingOptions.compression" />
+
+                            <!-- Максимальное разрешение -->
+                            <ImageMaxResolutionSetting v-model="processingOptions.max_resolution" />
+
+                            <!-- Миниатюры -->
+                            <div class="mb-4">
+                                <label class="block text-gray-700 font-medium mb-2">
+                                    Создать миниатюры
+                                </label>
+                                <input
+                                    v-model="processingOptions.thumbnails"
+                                    type="text"
+                                    placeholder='например: [{"width": 300,"height": 200}, {"width": 150,"height": 150}]'
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <p class="text-sm text-gray-500 mt-1">
+                                    Формат: JSON массив объектов с полями width и height
+                                </p>
+                            </div>
+
+                            <!-- Водяной знак -->
+                            <div class="mb-4">
+                                <label class="flex items-center space-x-2">
+                                    <input
+                                        v-model="processingOptions.watermark.enabled"
+                                        type="checkbox"
+                                        class="rounded text-blue-500"
+                                    />
+                                    <span class="text-gray-700">Добавить водяной знак</span>
+                                </label>
+                            </div>
+
+                            <div v-if="processingOptions.watermark.enabled" class="pl-4 border-l-2 border-gray-200">
+                                <div class="mb-3">
+                                    <label class="block text-gray-700 font-medium mb-1">Тип водяного знака</label>
+                                    <select
+                                        v-model="processingOptions.watermark.type"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
-                                        ×
-                                    </button>
+                                        <option value="text">Текст</option>
+                                        <option value="image">Картинка</option>
+                                    </select>
+                                </div>
+
+                                <div v-if="processingOptions.watermark.type === 'text'" class="mb-3">
+                                    <label class="block text-gray-700 font-medium mb-1">Текст водяного знака</label>
+                                    <input
+                                        v-model="processingOptions.watermark.text"
+                                        type="text"
+                                        placeholder="Введите текст"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="block text-gray-700 font-medium mb-1">Положение</label>
+                                    <select
+                                        v-model="processingOptions.watermark.position"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="top-left">Сверху слева</option>
+                                        <option value="top-right">Сверху справа</option>
+                                        <option value="center">По центру</option>
+                                        <option value="bottom-left">Снизу слева</option>
+                                        <option value="bottom-right">Снизу справа</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        Прозрачность: {{ processingOptions.watermark.opacity }}%
+                                    </label>
+                                    <input
+                                        v-model.number="processingOptions.watermark.opacity"
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        step="5"
+                                        class="w-full"
+                                    />
                                 </div>
                             </div>
                         </div>
