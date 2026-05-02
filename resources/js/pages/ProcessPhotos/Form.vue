@@ -1,11 +1,12 @@
 <!-- resources/js/Pages/ProcessPhotos/Form.vue -->
-<script setup>
-import { Head } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+<script setup lang="ts">
+
+import { router, Head } from '@inertiajs/vue3'
 import { ref, reactive } from 'vue'
-import { router } from '@inertiajs/vue3'
+import AppLayout from '@/layouts/AppLayout.vue';
 import ImageCompressionSetting from '../../components/ProcessPhotoFormPartials/ImageCompressionSetting.vue'
 import ImageMaxResolutionSetting from '../../components/ProcessPhotoFormPartials/ImageMaxResolutionSetting.vue'
+import ImageUploaderWithPreview from '../../components/ProcessPhotoFormPartials/ImageUploaderWithPreview.vue';
 
 const breadcrumbs = [
     {
@@ -25,7 +26,7 @@ const props = defineProps({
     }
 })
 
-const selectedFiles = ref([])
+const selectedFiles = ref<File[]>([])
 const isProcessing = ref(false)
 const fileInput = ref(null)
 
@@ -43,44 +44,6 @@ const processingOptions = reactive({
         image_url: null,
     }
 })
-
-// Обработка выбора файлов
-const handleFileSelect = (event) => {
-    const files = Array.from(event.target.files)
-
-    files.forEach(file => {
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader()
-            reader.onload = (e) => {
-                selectedFiles.value.push({
-                    file: file,
-                    preview: e.target.result,
-                    name: file.name,
-                    size: file.size
-                })
-            }
-            reader.readAsDataURL(file)
-        }
-    })
-
-    if (fileInput.value) {
-        fileInput.value.value = ''
-    }
-}
-
-// Удаление файла
-const removeFile = (index) => {
-    selectedFiles.value.splice(index, 1)
-}
-
-// Форматирование размера
-const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const sizes = ['B', 'KB', 'MB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
 
 // Отправка формы
 const submitForm = () => {
@@ -149,42 +112,7 @@ const submitForm = () => {
                     <form @submit.prevent="submitForm">
                         <!-- Загрузка файлов -->
                         <div class="mb-6">
-                            <label class="block text-gray-700 font-bold mb-2">
-                                Выберите фотографии
-                            </label>
-
-                            <input
-                                type="file"
-                                ref="fileInput"
-                                @change="handleFileSelect"
-                                multiple
-                                accept="image/*"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-
-                            <p class="text-sm text-gray-500 mt-1">
-                                Можно выбрать несколько фотографий. Поддерживаются: JPEG, PNG, GIF. Макс. размер: 10MB
-                            </p>
-
-                            <!-- Превью -->
-                            <div v-if="selectedFiles.length" class="mt-4">
-                                <h3 class="font-bold mb-2">Выбранные файлы ({{ selectedFiles.length }})</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div v-for="(file, index) in selectedFiles" :key="index" class="relative">
-                                        <img :src="file.preview" class="w-full h-32 object-cover rounded border" />
-                                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
-                                            {{ formatFileSize(file.size) }}
-                                        </div>
-                                        <button
-                                            @click="removeFile(index)"
-                                            type="button"
-                                            class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <ImageUploaderWithPreview @update:files="selectedFiles = $event" />
                         </div>
 
                         <!-- Параметры обработки -->
