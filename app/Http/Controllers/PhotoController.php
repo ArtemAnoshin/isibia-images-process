@@ -18,9 +18,7 @@ class PhotoController extends Controller
             $request->validated()
         );
 
-        dd($dto);
-
-        $service->process($request->validated());
+        $service->process($dto);
 
         return back()->with('success', 'Файлы загружены');
     }
