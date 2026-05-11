@@ -11,7 +11,7 @@ const breadcrumbs = [
     { title: 'Process Photos', href: '/dashboard/process-photos' }
 ]
 
-const props = defineProps({
+defineProps({
     processedPhotos: {
         type: Array,
         default: () => []
@@ -62,7 +62,7 @@ const submit = () => {
         preserveScroll: true,
         onSuccess: () => {
             form.reset('files')
-        }
+        },
     })
 }
 </script>
@@ -95,7 +95,6 @@ const submit = () => {
                 <!-- Форма -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <form @submit.prevent="submit">
-
                         <!-- Upload -->
                         <div class="mb-6">
                             <ImageUploaderWithPreview
