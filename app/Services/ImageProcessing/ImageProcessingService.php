@@ -4,6 +4,7 @@ namespace App\Services\ImageProcessing;
 
 use App\Services\ImageProcessing\DTOs\ProcessedImageDTO;
 use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
+use App\Services\ImageProcessing\DTOs\ImageProcessingResultDTO;
 use App\Services\ImageProcessing\Support\ProcessedImagesPathResolver;
 use App\Services\ImageProcessing\Processors\ResizeProcessor;
 use App\Services\ImageProcessing\Support\ProcessedImageFilenameGenerator;
@@ -25,7 +26,6 @@ class ImageProcessingService
         $this->pathResolver->ensureDirectoryExists();
 
         foreach ($dto->files as $file) {
-            // Исправление 1: Загрузка изображения из файла
             $image = Image::decode($file);
 
             // Resize
@@ -41,12 +41,20 @@ class ImageProcessingService
             $filename = $this->filenameGenerator->generate($file);
             $fullPath = $this->pathResolver->path($filename);
 
-            $image->save($fullPath);
+            $image->save($fullPath, quality: $dto->compression);
 
             $processedFiles[] = new ProcessedImageDTO(
                 filename: $filename,
                 path: $fullPath,
                 url: $this->pathResolver->url($filename),
+            );
+        }
+
+        if (count($processedFiles) === 1) {
+            return new ImageProcessingResultDTO(
+                isArchive: false,
+                downloadUrl: $processedFiles[0]->url,
+                files: $processedFiles,
             );
         }
 

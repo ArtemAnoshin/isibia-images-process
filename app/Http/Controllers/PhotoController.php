@@ -18,8 +18,22 @@ class PhotoController extends Controller
             $request->validated()
         );
 
-        $service->process($dto);
+        $result = $service->process($dto);
 
-        return back()->with('success', 'Файлы загружены');
+        return back()->with([
+            'success' => 'Файлы обработаны',
+
+            'processed' => [
+                'isArchive' => $result->isArchive,
+                'downloadUrl' => $result->downloadUrl,
+
+                'files' => collect($result->files)
+                    ->map(fn ($file) => [
+                        'filename' => $file->filename,
+                        'url' => $file->url,
+                    ])
+                    ->values(),
+            ],
+        ]);
     }
 }

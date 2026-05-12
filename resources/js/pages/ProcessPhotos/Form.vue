@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, useForm, usePage } from '@inertiajs/vue3'
 import ImageCompressionSetting from '@/components/ProcessPhotoFormPartials/ImageCompressionSetting.vue'
 import ImageMaxResolutionSetting from '@/components/ProcessPhotoFormPartials/ImageMaxResolutionSetting.vue'
 import ImageUploaderWithPreview from '@/components/ProcessPhotoFormPartials/ImageUploaderWithPreview.vue'
@@ -11,15 +11,27 @@ const breadcrumbs = [
     { title: 'Process Photos', href: '/dashboard/process-photos' }
 ]
 
+type PageProps = {
+    flash: {
+        success?: string
+        processed?: {
+            isArchive: boolean
+            downloadUrl: string
+            files: {
+                filename: string
+                url: string
+            }[]
+        }
+    }
+}
+
+const page = usePage<PageProps>()
+
 defineProps({
     processedPhotos: {
         type: Array,
         default: () => []
     },
-    flash: {
-        type: Object,
-        default: () => ({})
-    }
 })
 
 // ✅ единый form
@@ -86,10 +98,53 @@ const submit = () => {
 
                 <!-- Flash -->
                 <div
-                    v-if="flash.success"
+                    v-if="page.props.flash.success"
                     class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
                 >
-                    {{ flash.success }}
+                    {{ page.props.flash.success }}
+                </div>
+
+                <div
+                    v-if="page.props.flash.processed"
+                    class="bg-white rounded-lg shadow-md p-6"
+                >
+                    <h2 class="text-xl font-bold mb-4">
+                        Результат обработки
+                    </h2>
+
+                    <!-- main download -->
+
+                    <div class="mb-4">
+                        <a
+                            :href="page.props.flash.processed.downloadUrl"
+                            download
+                            class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                            Скачать результат
+                        </a>
+                    </div>
+
+                    <!-- files -->
+
+                    <div class="space-y-2">
+                        <div
+                            v-for="file in page.props.flash.processed.files"
+                            :key="file.filename"
+                            class="flex items-center justify-between border rounded p-2"
+                        >
+                            <span>
+                                {{ file.filename }}
+                            </span>
+
+                            <a
+                                :href="file.url"
+                                download
+                                class="text-blue-500 hover:underline"
+                            >
+                                Скачать
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Форма -->
