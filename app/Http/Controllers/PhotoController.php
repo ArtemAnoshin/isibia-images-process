@@ -3,6 +3,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\UserIdentifierHelper;
 use App\Http\Requests\ProcessPhotosRequest;
 use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
 use App\Services\ImageProcessing\ImageProcessingService;
@@ -14,6 +15,9 @@ class PhotoController extends Controller
      */
     public function processPhotos(ProcessPhotosRequest $request, ImageProcessingService $service)
     {
+        // Получаем идентификатор из сессии
+        $identifier = UserIdentifierHelper::getIdentifier();
+
         $dto = ImageProcessingRequestDTO::fromArray(
             $request->validated()
         );

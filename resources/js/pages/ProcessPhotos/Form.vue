@@ -72,7 +72,7 @@ const submit = () => {
         return
     }
 
-    form.post('/dashboard/process-photos', {
+    form.post('/process-photos', {
         preserveScroll: true,
         onSuccess: () => {
             form.reset('files')
