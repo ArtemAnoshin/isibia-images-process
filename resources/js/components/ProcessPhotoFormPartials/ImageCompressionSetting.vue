@@ -17,30 +17,12 @@ const safeCompression = computed({
         compression.value = clamped
     }
 })
-
-// текстовое описание (UX!)
-const compressionLabel = computed(() => {
-    const value = compression.value
-
-    if (value <= 30) {
-        return 'Минимальное (лучшее качество)'
-    }
-
-    if (value <= 60) {
-        return 'Среднее'
-    }
-
-    return 'Максимальное (сильное сжатие)'
-})
 </script>
 
 <template>
     <div class="mb-4">
         <label class="block text-gray-700 font-medium mb-2">
-            Сжатие: {{ compression }}%
-            <span class="text-gray-500 text-sm">
-                ({{ compressionLabel }})
-            </span>
+            Сжатие: {{ compression }}% от изначального качества фотографии
         </label>
 
         <input

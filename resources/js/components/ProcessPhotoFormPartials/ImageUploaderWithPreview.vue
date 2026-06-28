@@ -17,7 +17,7 @@ const emit = defineEmits<{
 }>()
 
 // настройки
-const MAX_FILE_SIZE_MB = 10
+const MAX_FILE_SIZE_MB = 5
 const MAX_FILES = 10
 
 // формат размера
@@ -129,6 +129,21 @@ onBeforeUnmount(() => {
     selectedFiles.value.forEach(f => {
         URL.revokeObjectURL(f.preview)
     })
+})
+
+const clearFiles = () => {
+    selectedFiles.value = []
+    
+    emit('update:files', [])
+
+    if (fileInput.value) {
+        fileInput.value.value = ''
+    }
+}
+
+// Экспонируем метод для родителя
+defineExpose({
+  clearFiles
 })
 </script>
 

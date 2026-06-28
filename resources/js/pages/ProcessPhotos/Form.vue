@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm, usePage } from '@inertiajs/vue3'
+import { ref } from 'vue'
 import ImageCompressionSetting from '@/components/ProcessPhotoFormPartials/ImageCompressionSetting.vue'
 import ImageMaxResolutionSetting from '@/components/ProcessPhotoFormPartials/ImageMaxResolutionSetting.vue'
 import ImageUploaderWithPreview from '@/components/ProcessPhotoFormPartials/ImageUploaderWithPreview.vue'
@@ -26,6 +27,7 @@ type PageProps = {
 }
 
 const page = usePage<PageProps>()
+const imageUploaderWithPreviewRef = ref(null)
 
 defineProps({
     processedPhotos: {
@@ -74,6 +76,11 @@ const submit = () => {
         preserveScroll: true,
         onSuccess: () => {
             form.reset('files')
+
+            // Очищаем файлы в компоненте
+            if (imageUploaderWithPreviewRef.value) {
+                imageUploaderWithPreviewRef.value.clearFiles()
+            }
         },
     })
 }
@@ -153,6 +160,7 @@ const submit = () => {
                         <!-- Upload -->
                         <div class="mb-6">
                             <ImageUploaderWithPreview
+                                ref="imageUploaderWithPreviewRef"
                                 @update:files="form.files = $event"
                             />
                         </div>
