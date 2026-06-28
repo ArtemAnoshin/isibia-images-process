@@ -9,7 +9,7 @@ import WatermarkSettings from '@/components/ProcessPhotoFormPartials/WatermarkSe
 import AppLayout from '@/layouts/AppLayout.vue'
 
 const breadcrumbs = [
-    { title: 'Process Photos', href: '/dashboard/process-photos' }
+    { title: 'Process Photos', href: '/process-photos' }
 ]
 
 type PageProps = {

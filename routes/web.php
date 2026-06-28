@@ -10,14 +10,14 @@ Route::inertia('/', 'Welcome', [
 
 Route::middleware(['auth'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
-
-    // Для страницы с формой (GET запрос)
-    Route::inertia('dashboard/process-photos', 'ProcessPhotos/Form')
-        ->name('dashboard.process-photos.form');
-
-    // Для обработки POST запроса (обычный Route, не inertia)
-    Route::post('/dashboard/process-photos', [PhotoController::class, 'processPhotos'])
-        ->name('dashboard.process-photos.process');
 });
+
+// Для страницы с формой (GET запрос)
+Route::inertia('process-photos', 'ProcessPhotos/Form')
+    ->name('process-photos.form');
+
+// Для обработки POST запроса (обычный Route, не inertia)
+Route::post('process-photos', [PhotoController::class, 'processPhotos'])
+    ->name('process-photos.process');
 
 require __DIR__.'/settings.php';
