@@ -10,6 +10,8 @@ class ImageProcessingRequestDTO
      * @param UploadedFile[] $files
      */
     public function __construct(
+        public readonly ?string $identifier,
+
         public readonly array $files,
 
         public readonly int $compression,
@@ -56,9 +58,11 @@ class ImageProcessingRequestDTO
         return !empty($this->thumbnails);
     }
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data, ?string $identifier = null): self
     {
         return new self(
+            identifier: $identifier,
+
             files: $data['files'],
 
             compression: $data['compression'],

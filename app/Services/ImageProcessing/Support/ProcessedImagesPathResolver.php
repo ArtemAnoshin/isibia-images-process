@@ -4,6 +4,8 @@ namespace App\Services\ImageProcessing\Support;
 
 class ProcessedImagesPathResolver
 {
+    private ?string $userDirectory;
+
     public function directory(): string
     {
         return storage_path('app/public/processed');
@@ -11,7 +13,7 @@ class ProcessedImagesPathResolver
 
     public function relativeDirectory(): string
     {
-        return 'processed';
+        return 'processed' . '/' . $this->userDirectory;
     }
 
     public function url(string $filename): string
@@ -26,13 +28,22 @@ class ProcessedImagesPathResolver
 
     public function path(string $filename): string
     {
-        return $this->directory() . '/' . $filename;
+        return $this->userDirectoryPath() . '/' . $filename;
     }
 
     public function ensureDirectoryExists(): void
     {
-        if (!file_exists($this->directory())) {
-            mkdir($this->directory(), 0777, true);
+        if (!file_exists($this->userDirectoryPath())) {
+            mkdir($this->userDirectoryPath(), 0777, true);
         }
+    }
+
+    public function setUserDirectory(string $userDirectory) {
+        $this->userDirectory = $userDirectory;
+    }
+
+    private function userDirectoryPath(): string
+    {
+        return $this->directory() . '/' . $this->userDirectory;
     }
 }

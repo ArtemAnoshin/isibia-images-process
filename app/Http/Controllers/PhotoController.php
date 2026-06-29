@@ -19,9 +19,11 @@ class PhotoController extends Controller
         $identifier = UserIdentifierHelper::getIdentifier();
 
         $dto = ImageProcessingRequestDTO::fromArray(
-            $request->validated()
+            $request->validated(),
+            $identifier
         );
 
+        // TODO: В будущем тут будет RabbitMQ
         $result = $service->process($dto);
 
         return back()->with([
