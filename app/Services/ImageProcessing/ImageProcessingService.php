@@ -9,6 +9,7 @@ use App\Services\ImageProcessing\Support\ProcessedImagesPathResolver;
 use App\Services\ImageProcessing\Processors\ResizeProcessor;
 use App\Services\ImageProcessing\Support\ProcessedImageFilenameGenerator;
 use Intervention\Image\Laravel\Facades\Image;
+use Illuminate\Support\Facades\Storage;
 
 class ImageProcessingService
 {
@@ -23,11 +24,15 @@ class ImageProcessingService
     {
         $processedFiles = [];
 
+        // Создаем директорию для пользователя, если ее нет
         $this->pathResolver->setUserDirectory($dto->identifier);
         $this->pathResolver->ensureDirectoryExists();
 
         foreach ($dto->files as $file) {
             $image = Image::decode($file);
+            // Генерация базового имени файла и пути
+            $baseFileName = $this->filenameGenerator->generate($file);
+            $fullPath = $this->pathResolver->path($baseFileName);
 
             // Resize
             if ($dto->needsResize()) {
@@ -38,74 +43,38 @@ class ImageProcessingService
                 );
             }
 
-            // Генерация имени и сохранение
-            $filename = $this->filenameGenerator->generate($file);
-            $fullPath = $this->pathResolver->path($filename);
+            // Миниатюры, водяной знак и прочее
 
-            // Определяем формат
-            $extension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
-            $format = $dto->format ?? $extension;
-
-            // Сохраняем с учетом формата
-            // TODO: есть проблемы со сжатием PNG, нужно разобраться
-            $this->saveImageWithFormat($image, $fullPath, $format, $dto->compression);
+            // Сохраняем изображение в нужном формате и качестве в стораже
+            $image->save($fullPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
 
             $processedFiles[] = new ProcessedImageDTO(
-                filename: $filename,
+                filename: $baseFileName,
                 path: $fullPath,
-                url: $this->pathResolver->url($filename),
+                url: $this->pathResolver->url($baseFileName),
             );
         }
 
-        if (count($processedFiles) === 1) {
-            return new ImageProcessingResultDTO(
-                isArchive: false,
-                downloadUrl: $processedFiles[0]->url,
-                files: $processedFiles,
-            );
+        $archiveUrl = null;
+
+        if (count($processedFiles) > 1) {
+            // Создаем архив из обработанных файлов
+            $archiveName = date('Ymd_His', time()) . '_processed_images.zip';
+            $archivePath = $this->pathResolver->path($archiveName);
+            $zip = new \ZipArchive();
+            if ($zip->open($archivePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+                foreach ($processedFiles as $file) {
+                    $zip->addFile($file->path, $file->filename);
+                }
+                $zip->close();
+                $archiveUrl = $this->pathResolver->url($archiveName);
+            }
         }
 
-        return $processedFiles;
-    }
-
-    // Добавляем метод
-    private function saveImageWithFormat($image, string $path, string $format, int $quality): void
-    {
-        switch ($format) {
-            case 'png':
-                // Для PNG quality работает от 0 до 9 (уровень сжатия)
-                $pngQuality = $this->convertToPngQuality($quality);
-                $image->save($path, quality: $pngQuality, format: 'png');
-                break;
-
-            case 'webp':
-                $image->save($path, quality: $quality, format: 'webp');
-                break;
-
-            case 'jpeg':
-            case 'jpg':
-            default:
-                $image->save($path, quality: $quality);
-                break;
-        }
-    }
-
-    private function convertToPngQuality(int $jpegQuality): int
-    {
-        // Конвертируем quality из 0-100 в 0-9 для PNG
-        // 0 - максимальное сжатие (самый маленький файл)
-        // 9 - минимальное сжатие (самый большой файл)
-
-        if ($jpegQuality >= 90) {
-            return 1; // Минимальное сжатие, максимальное качество
-        } elseif ($jpegQuality >= 70) {
-            return 3;
-        } elseif ($jpegQuality >= 50) {
-            return 5;
-        } elseif ($jpegQuality >= 30) {
-            return 7;
-        } else {
-            return 9; // Максимальное сжатие
-        }
+        return new ImageProcessingResultDTO(
+            isArchive: count($processedFiles) === 1 ? false : true,
+            downloadUrl: count($processedFiles) === 1 ? $processedFiles[0]->url : $archiveUrl,
+            files: $processedFiles,
+        );
     }
 }

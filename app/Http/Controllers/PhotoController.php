@@ -18,6 +18,7 @@ class PhotoController extends Controller
         // Получаем идентификатор из сессии
         $identifier = UserIdentifierHelper::getIdentifier();
 
+        // Создаем DTO для передачи данных в сервис - массив файлов, параметры обработки и идентификатор пользователя
         $dto = ImageProcessingRequestDTO::fromArray(
             $request->validated(),
             $identifier
@@ -25,6 +26,8 @@ class PhotoController extends Controller
 
         // TODO: В будущем тут будет RabbitMQ
         $result = $service->process($dto);
+
+        // Сохранить в базу данных информацию о загруженных файлах
 
         return back()->with([
             'success' => 'Файлы обработаны',

@@ -133,7 +133,25 @@ const submit = () => {
 
                     <!-- files -->
 
-                    <div class="space-y-2">
+                    <!-- Если это архив - показываем одну ссылку -->
+                    <div v-if="page.props.flash.processed.isArchive"
+                        class="flex items-center justify-between border rounded p-3 bg-blue-50">
+                        <div>
+                            <span class="font-medium">📦 Архив</span>
+                            <span class="text-sm text-gray-600 ml-2">
+                                ({{ page.props.flash.processed.files?.length || 0 }} файлов)
+                            </span>
+                        </div>
+                        <a
+                            :href="page.props.flash.processed.downloadUrl"
+                            download
+                            class="text-blue-500 hover:underline font-medium"
+                        >
+                            ⬇ Скачать архив
+                        </a>
+                    </div>
+
+                    <div v-else class="space-y-2">
                         <div
                             v-for="file in page.props.flash.processed.files"
                             :key="file.filename"
