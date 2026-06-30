@@ -12,12 +12,12 @@ Route::middleware(['auth'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
 });
 
-// Для страницы с формой (GET запрос)
+require __DIR__.'/settings.php';
+
+// Форма для обработки изображений (GET)
 Route::get('process-photos', [PhotoController::class, 'index'])
     ->name('process-photos.form');
 
-// Для обработки POST запроса (обычный Route, не inertia)
+// Обработка изображений (POST)
 Route::post('process-photos', [PhotoController::class, 'processPhotos'])
     ->name('process-photos.process');
-
-require __DIR__.'/settings.php';
