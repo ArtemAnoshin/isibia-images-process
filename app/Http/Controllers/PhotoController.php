@@ -7,13 +7,18 @@ use App\Helpers\UserIdentifierHelper;
 use App\Http\Requests\ProcessPhotosRequest;
 use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
 use App\Services\ImageProcessing\ImageProcessingService;
+use App\Services\ModelManagers\ProcessedFile\ProcessedFileSaver;
 
 class PhotoController extends Controller
 {
     /**
      * Обработать загруженные фотографии
      */
-    public function processPhotos(ProcessPhotosRequest $request, ImageProcessingService $service)
+    public function processPhotos(
+        ProcessPhotosRequest $request,
+        ImageProcessingService $service,
+        ProcessedFileSaver $processedFileSaver,
+    )
     {
         // Получаем идентификатор из сессии
         $identifier = UserIdentifierHelper::getIdentifier();
@@ -28,6 +33,7 @@ class PhotoController extends Controller
         $result = $service->process($dto);
 
         // Сохранить в базу данных информацию о загруженных файлах
+        $processedFileSaver->saveProcessedResult($result);
 
         return back()->with([
             'success' => 'Файлы обработаны',

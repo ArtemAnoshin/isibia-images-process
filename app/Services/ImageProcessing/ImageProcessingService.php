@@ -74,6 +74,7 @@ class ImageProcessingService
         return new ImageProcessingResultDTO(
             isArchive: count($processedFiles) === 1 ? false : true,
             downloadUrl: count($processedFiles) === 1 ? $processedFiles[0]->url : $archiveUrl,
+            originalFileName: count($processedFiles) === 1 ? $baseFileName : $archiveName,
             files: $processedFiles,
         );
     }

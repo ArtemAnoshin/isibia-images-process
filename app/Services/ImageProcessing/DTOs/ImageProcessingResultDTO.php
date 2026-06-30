@@ -7,6 +7,7 @@ class ImageProcessingResultDTO
     public function __construct(
         public readonly bool $isArchive,
         public readonly string $downloadUrl,
+        public readonly string $originalFileName,
         public readonly array $files = [],
     ) {
     }
