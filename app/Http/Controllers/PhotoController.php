@@ -13,10 +13,14 @@ use Inertia\Inertia;
 
 class PhotoController extends Controller
 {
-    public function index(
-        ProcessedFileRepository $repository
-    )
+    /**
+     * Отображение формы обработки изображений
+     * @param ProcessedFileRepository $repository
+     * @return \Inertia\Response
+     */
+    public function index(ProcessedFileRepository $repository)
     {
+        // Обработанные файлы пользователя
         $files = $repository->filesForCurrentUser();
 
         return Inertia::render('ProcessPhotos/Form', [
