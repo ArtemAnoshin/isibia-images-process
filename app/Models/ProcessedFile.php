@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ProcessedFile extends Model
@@ -29,6 +30,18 @@ class ProcessedFile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function scopeForCurrentUser($query)
+    {
+        $sessionId = session()->getId();
+        $userId = Auth::id();
+
+        if ($userId) {
+            return $query->where('user_id', $userId);
+        }
+
+        return $query->where('anonymous_id', $sessionId);
     }
 
     // Скоуп для активных файлов

@@ -8,9 +8,22 @@ use App\Http\Requests\ProcessPhotosRequest;
 use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
 use App\Services\ImageProcessing\ImageProcessingService;
 use App\Services\ModelManagers\ProcessedFile\ProcessedFileSaver;
+use App\Services\ModelManagers\ProcessedFile\ProcessedFileRepository;
+use Inertia\Inertia;
 
 class PhotoController extends Controller
 {
+    public function index(
+        ProcessedFileRepository $repository
+    )
+    {
+        $files = $repository->filesForCurrentUser();
+
+        return Inertia::render('ProcessPhotos/Form', [
+            'files' => $files,
+        ]);
+    }
+
     /**
      * Обработать загруженные фотографии
      */

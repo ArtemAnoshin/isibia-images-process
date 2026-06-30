@@ -13,7 +13,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Для страницы с формой (GET запрос)
-Route::inertia('process-photos', 'ProcessPhotos/Form')
+Route::get('process-photos', [PhotoController::class, 'index'])
     ->name('process-photos.form');
 
 // Для обработки POST запроса (обычный Route, не inertia)

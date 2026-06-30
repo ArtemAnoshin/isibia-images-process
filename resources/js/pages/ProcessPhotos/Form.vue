@@ -7,6 +7,7 @@ import ImageUploaderWithPreview from '@/components/ProcessPhotoFormPartials/Imag
 import ThumbnailsBuilder from '@/components/ProcessPhotoFormPartials/ThumbnailsBuilder.vue'
 import WatermarkSettings from '@/components/ProcessPhotoFormPartials/WatermarkSettings.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
+import FileList from '@/pages/ProcessPhotos/FileList.vue';
 
 const breadcrumbs = [
     { title: 'Process Photos', href: '/process-photos' }
@@ -30,7 +31,7 @@ const page = usePage<PageProps>()
 const imageUploaderWithPreviewRef = ref(null)
 
 defineProps({
-    processedPhotos: {
+    processedFiles: {
         type: Array,
         default: () => []
     },
@@ -84,6 +85,20 @@ const submit = () => {
         },
     })
 }
+
+// Удаление файла
+const deleteFile = (id) => {
+    // Здесь будет запрос на удаление
+    // form.delete(`/files/${id}`);
+    console.log('Delete file:', id);
+};
+
+// Удаление всех файлов
+const deleteAllFiles = () => {
+    // Здесь будет запрос на удаление всех
+    // form.delete('/files');
+    console.log('Delete all files');
+};
 </script>
 
 <template>
@@ -220,54 +235,14 @@ const submit = () => {
                             </span>
                         </button>
                     </form>
+
+                    <!-- Компонент со списком файлов -->
+                    <FileList
+                        :processedFiles="$page.props.files || []"
+                        @delete="deleteFile"
+                        @delete-all="deleteAllFiles"
+                    />
                 </div>
-
-                <!-- Результаты -->
-                <div
-                    v-if="processedPhotos.length"
-                    class="bg-white rounded-lg shadow-md p-6"
-                >
-                    <h2 class="text-xl font-bold mb-4">
-                        Результаты обработки
-                    </h2>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div
-                            v-for="(photo, index) in processedPhotos"
-                            :key="index"
-                            class="border rounded-lg p-3"
-                        >
-                            <img
-                                :src="photo.url"
-                                class="w-full h-48 object-cover rounded mb-2"
-                            />
-
-                            <div class="space-y-1 text-sm">
-                                <p class="font-medium">
-                                    {{ photo.original_name }}
-                                </p>
-                                <p class="text-green-600">
-                                    Было: {{ photo.original_size }}
-                                </p>
-                                <p class="text-blue-600">
-                                    Стало: {{ photo.new_size }}
-                                </p>
-                                <p class="text-red-600">
-                                    Сэкономлено: {{ photo.saved }}
-                                </p>
-
-                                <a
-                                    :href="photo.url"
-                                    download
-                                    class="inline-block mt-2 text-blue-500 hover:text-blue-700 text-sm"
-                                >
-                                    Скачать ↓
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </AppLayout>
