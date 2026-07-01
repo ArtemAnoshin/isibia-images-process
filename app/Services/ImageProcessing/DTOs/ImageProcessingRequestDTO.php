@@ -2,6 +2,7 @@
 
 namespace App\Services\ImageProcessing\DTOs;
 
+use App\Services\ModelManagers\User\DTOs\UserContext;
 use Illuminate\Http\UploadedFile;
 
 class ImageProcessingRequestDTO
@@ -10,7 +11,7 @@ class ImageProcessingRequestDTO
      * @param UploadedFile[] $files
      */
     public function __construct(
-        public readonly ?string $identifier,
+        public readonly UserContext $userContext,
 
         public readonly array $files,
 
@@ -58,10 +59,10 @@ class ImageProcessingRequestDTO
         return !empty($this->thumbnails);
     }
 
-    public static function fromArray(array $data, ?string $identifier = null): self
+    public static function fromArray(array $data, UserContext $userContext): self
     {
         return new self(
-            identifier: $identifier,
+            userContext: $userContext,
 
             files: $data['files'],
 

@@ -18,12 +18,10 @@ class ProcessedImagesPathResolver
 
     public function url(string $filename): string
     {
-        return asset(
-            'storage/' .
+        return '/storage/' .
             $this->relativeDirectory() .
             '/' .
-            $filename
-        );
+            $filename;
     }
 
     public function path(string $filename): string

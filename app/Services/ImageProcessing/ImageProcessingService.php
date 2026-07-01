@@ -24,15 +24,18 @@ class ImageProcessingService
     {
         $processedFiles = [];
 
+        // ✅ Используем метод из контекста для получения имени папки
+        $userDirectory = $dto->userContext->getUserDirectory();
+
         // Создаем директорию для пользователя, если ее нет
-        $this->pathResolver->setUserDirectory($dto->identifier);
+        $this->pathResolver->setUserDirectory($userDirectory);
         $this->pathResolver->ensureDirectoryExists();
 
         foreach ($dto->files as $file) {
             $image = Image::decode($file);
             // Генерация базового имени файла и пути
             $baseFileName = $this->filenameGenerator->generate($file);
-            $fullPath = $this->pathResolver->path($baseFileName);
+            $serverPath = $this->pathResolver->path($baseFileName);
 
             // Resize
             if ($dto->needsResize()) {
@@ -46,12 +49,12 @@ class ImageProcessingService
             // Миниатюры, водяной знак и прочее
 
             // Сохраняем изображение в нужном формате и качестве в стораже
-            $image->save($fullPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
+            $image->save($serverPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
 
             $processedFiles[] = new ProcessedImageDTO(
                 filename: $baseFileName,
-                path: $fullPath,
-                url: $this->pathResolver->url($baseFileName),
+                serverPath: $serverPath,
+                downloadUrl: $this->pathResolver->url($baseFileName),
             );
         }
 
@@ -64,7 +67,7 @@ class ImageProcessingService
             $zip = new \ZipArchive();
             if ($zip->open($archivePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
                 foreach ($processedFiles as $file) {
-                    $zip->addFile($file->path, $file->filename);
+                    $zip->addFile($file->serverPath, $file->filename);
                 }
                 $zip->close();
                 $archiveUrl = $this->pathResolver->url($archiveName);
@@ -73,7 +76,7 @@ class ImageProcessingService
 
         return new ImageProcessingResultDTO(
             isArchive: count($processedFiles) === 1 ? false : true,
-            downloadUrl: count($processedFiles) === 1 ? $processedFiles[0]->url : $archiveUrl,
+            downloadUrl: count($processedFiles) === 1 ? $processedFiles[0]->downloadUrl : $archiveUrl,
             originalFileName: count($processedFiles) === 1 ? $baseFileName : $archiveName,
             files: $processedFiles,
         );

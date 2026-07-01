@@ -25,6 +25,16 @@ class UserContext
         );
     }
 
+    // ✅ Новый метод для получения имени папки
+    public function getUserDirectory(): string
+    {
+        if ($this->isAuthorized()) {
+            return 'user_' . $this->userId;
+        }
+
+        return 'guest_' . $this->guestId;
+    }
+
     // Механизм генерации уникального ID для неавторизованного пользователя
     public static function generateAnonymousId(): string
     {

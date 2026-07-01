@@ -41,17 +41,18 @@ class PhotoController extends Controller
         ProcessedFileSaver $processedFileSaver,
     )
     {
-        // Получаем идентификатор из сессии
-        $identifier = UserIdentifierHelper::getIdentifier();
+        // Создаем контекст из запроса
+        $userContext = UserContext::fromRequest($request);
 
         // Создаем DTO для передачи данных в сервис - массив файлов, параметры обработки и идентификатор пользователя
         $dto = ImageProcessingRequestDTO::fromArray(
             $request->validated(),
-            $identifier
+            $userContext
         );
 
         // TODO: В будущем тут будет RabbitMQ
         $result = $service->process($dto);
+        dd($result);
 
         // Сохранить в базу данных информацию о загруженных файлах
         $processedFileSaver->saveProcessedResult($result);
