@@ -9,6 +9,8 @@ use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
 use App\Services\ImageProcessing\ImageProcessingService;
 use App\Services\ModelManagers\ProcessedFile\ProcessedFileSaver;
 use App\Services\ModelManagers\ProcessedFile\ProcessedFileRepository;
+use App\Services\ModelManagers\User\DTOs\UserContext;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PhotoController extends Controller
@@ -18,10 +20,12 @@ class PhotoController extends Controller
      * @param ProcessedFileRepository $repository
      * @return \Inertia\Response
      */
-    public function index(ProcessedFileRepository $repository)
+    public function index(Request $request, ProcessedFileRepository $repository)
     {
+        $userContext = UserContext::fromRequest($request);
+
         // Обработанные файлы пользователя
-        $files = $repository->filesForCurrentUser();
+        $files = $repository->filesForCurrentUser($userContext);
 
         return Inertia::render('ProcessPhotos/Form', [
             'files' => $files,

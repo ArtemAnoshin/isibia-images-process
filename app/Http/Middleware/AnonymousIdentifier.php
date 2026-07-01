@@ -2,15 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ModelManagers\User\DTOs\UserContext;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class AnonymousIdentifier
 {
-    protected const COOKIE_NAME = 'anonymous_id';
-    protected const COOKIE_LIFETIME = 60 * 24 * 300; // 300 дней
-
     public function handle(Request $request, Closure $next)
     {
         // Если пользователь авторизован - пропускаем
@@ -19,18 +16,18 @@ class AnonymousIdentifier
         }
 
         // Пытаемся получить ID из куки
-        $anonymousId = $request->cookie(self::COOKIE_NAME);
+        $anonymousId = $request->cookie(UserContext::GUEST_COOKIE_NAME);
 
         if (!$anonymousId) {
-            $anonymousId = $this->generateAnonymousId();
+            $anonymousId = UserContext::generateAnonymousId();
 
             $response = $next($request);
 
             // Устанавливаем куку на 300 дней
             $response->cookie(
-                self::COOKIE_NAME,
+                UserContext::GUEST_COOKIE_NAME,
                 $anonymousId,
-                self::COOKIE_LIFETIME,
+                UserContext::GUEST_COOKIE_LIFETIME,
                 '/',
                 null,
                 config('app.env') === 'production',
@@ -43,10 +40,5 @@ class AnonymousIdentifier
         }
 
         return $next($request);
-    }
-
-    private function generateAnonymousId(): string
-    {
-        return hash('sha256', Str::uuid() . microtime() . random_bytes(32));
     }
 }

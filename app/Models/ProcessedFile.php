@@ -32,24 +32,6 @@ class ProcessedFile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function scopeForCurrentUser($query)
-    {
-        $sessionId = session()->getId();
-        $userId = Auth::id();
-
-        if ($userId) {
-            return $query->where('user_id', $userId);
-        }
-
-        return $query->where('anonymous_id', $sessionId);
-    }
-
-    // Скоуп для активных файлов
-    public function scopeActive($query)
-    {
-        return $query->where('expires_at', '>', now());
-    }
-
     // Проверка существования файла
     public function fileExists(): bool
     {
