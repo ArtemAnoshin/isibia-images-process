@@ -52,10 +52,9 @@ class PhotoController extends Controller
 
         // TODO: В будущем тут будет RabbitMQ
         $result = $service->process($dto);
-        dd($result);
 
         // Сохранить в базу данных информацию о загруженных файлах
-        $processedFileSaver->saveProcessedResult($result);
+        $processedFileSaver->saveProcessedResult($result, $userContext);
 
         return back()->with([
             'success' => 'Файлы обработаны',
@@ -67,7 +66,7 @@ class PhotoController extends Controller
                 'files' => collect($result->files)
                     ->map(fn ($file) => [
                         'filename' => $file->filename,
-                        'url' => $file->url,
+                        'url' => $file->downloadUrl,
                     ])
                     ->values(),
             ],
