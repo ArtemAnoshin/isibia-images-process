@@ -12,7 +12,7 @@ import FileList from '@/pages/ProcessPhotos/FileList.vue';
 import type { PageProps } from '@/types/files'
 
 const page = usePage<PageProps>()
-const processedFiles = page.props.files
+const processedFiles = computed(() => page.props.files ?? [])
 const flash = computed(() => page.props.flash ?? {})
 const imageUploaderWithPreviewRef = ref(null)
 
@@ -57,9 +57,8 @@ const submit = () => {
         onSuccess: () => {
             form.reset('files')
 
-            // Очищаем файлы в компоненте
             if (imageUploaderWithPreviewRef.value) {
-                imageUploaderWithPreviewRef.value.clearFiles()
+                (imageUploaderWithPreviewRef.value as any).clearFiles()
             }
         },
     })

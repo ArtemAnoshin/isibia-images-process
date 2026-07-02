@@ -39,6 +39,7 @@ class PhotoController extends Controller
         ProcessPhotosRequest $request,
         ImageProcessingService $service,
         ProcessedFileSaver $processedFileSaver,
+        ProcessedFileRepository $repository
     )
     {
         // Создаем контекст из запроса
@@ -56,19 +57,17 @@ class PhotoController extends Controller
         // Сохранить в базу данных информацию о загруженных файлах
         $processedFileSaver->saveProcessedResult($result, $userContext);
 
-        return back()->with([
-            'success' => 'Файлы обработаны',
+        // Получим все файлы пользователя
+        $updatedFiles = $repository->filesForCurrentUser($userContext);
 
-            'processed' => [
-                'isArchive' => $result->isArchive,
-                'downloadUrl' => $result->downloadUrl,
-
-                'files' => collect($result->files)
-                    ->map(fn ($file) => [
-                        'filename' => $file->filename,
-                        'url' => $file->downloadUrl,
-                    ])
-                    ->values(),
+        return Inertia::render('ProcessPhotos/Form', [
+            'files' => $updatedFiles,
+            'flash' => [
+                'success' => 'Файлы обработаны',
+                'processed' => [
+                    'isArchive' => $result->isArchive,
+                    'downloadUrl' => $result->downloadUrl,
+                ]
             ],
         ]);
     }
