@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm, usePage } from '@inertiajs/vue3'
+import { Head, useForm, usePage, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import FlashMessages from '@/components/ProcessPhotoFormPartials/FlashMessages.vue'
 import ImageCompressionSetting from '@/components/ProcessPhotoFormPartials/ImageCompressionSetting.vue'
@@ -64,18 +64,25 @@ const submit = () => {
     })
 }
 
-// Удаление файла
-const deleteFile = (id) => {
-    // Здесь будет запрос на удаление
-    // form.delete(`/files/${id}`);
-    console.log('Delete file:', id);
+// ✅ Удаление одного файла
+const deleteFile = (id: number) => {
+    router.delete(`/files/${id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Inertia автоматически обновит список файлов,
+            // так как контроллер вернет новый render с обновленными props
+        },
+    });
 };
 
-// Удаление всех файлов
+// ✅ Удаление всех файлов
 const deleteAllFiles = () => {
-    // Здесь будет запрос на удаление всех
-    // form.delete('/files');
-    console.log('Delete all files');
+    router.delete('/files', {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Список файлов очистится автоматически после ответа сервера
+        },
+    });
 };
 </script>
 

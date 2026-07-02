@@ -21,3 +21,7 @@ Route::get('process-photos', [PhotoController::class, 'index'])
 // Обработка изображений (POST)
 Route::post('process-photos', [PhotoController::class, 'processPhotos'])
     ->name('process-photos.process');
+
+// Удаление файлов
+Route::delete('/files/{file}', [PhotoController::class, 'destroy'])->name('destroy');
+Route::delete('/files', [PhotoController::class, 'destroyAll'])->name('destroyAll');

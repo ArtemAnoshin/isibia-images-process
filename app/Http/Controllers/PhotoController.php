@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 
 use App\Helpers\UserIdentifierHelper;
 use App\Http\Requests\ProcessPhotosRequest;
+use App\Models\ProcessedFile;
 use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
 use App\Services\ImageProcessing\ImageProcessingService;
 use App\Services\ModelManagers\ProcessedFile\ProcessedFileSaver;
 use App\Services\ModelManagers\ProcessedFile\ProcessedFileRepository;
 use App\Services\ModelManagers\User\DTOs\UserContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class PhotoController extends Controller
@@ -70,5 +72,66 @@ class PhotoController extends Controller
                 ]
             ],
         ]);
+    }
+
+    public function destroy(ProcessedFile $file, Request $request)
+    {
+        $userContext = UserContext::fromRequest($request);
+
+        // Проверка прав: удалять можно только свои файлы
+        $this->authorizeDelete($file, $userContext);
+
+        // Удаляем физический файл с диска (если нужно)
+        Storage::delete($file->path);
+
+        $file->delete();
+
+        // Возвращаем обновленный список
+        return $this->redirectWithUpdatedFiles($request);
+    }
+
+    public function destroyAll(Request $request)
+    {
+        $userContext = UserContext::fromRequest($request);
+
+        // Удаляем все файлы текущего пользователя/гостя
+        ProcessedFile::where(function ($query) use ($userContext) {
+            if ($userContext->isAuthorized()) {
+                $query->where('user_id', $userContext->userId);
+            } else {
+                $query->where('anonymous_id', $userContext->guestId);
+            }
+        })->delete();
+
+        return $this->redirectWithUpdatedFiles($request);
+    }
+
+    private function redirectWithUpdatedFiles(Request $request)
+    {
+        $userContext = UserContext::fromRequest($request);
+        $repository = app()->make(ProcessedFileRepository::class);
+
+        return Inertia::render('ProcessPhotos/Form', [
+            'files' => $repository->filesForCurrentUser($userContext),
+            'flash' => [
+                'success' => 'Файлы успешно удалены',
+            ],
+        ]);
+    }
+
+    private function authorizeDelete(ProcessedFile $file, UserContext $context): void
+    {
+        // Простая проверка: ID владельца должен совпадать с текущим контекстом
+        $isOwner = false;
+
+        if ($context->isAuthorized() && $file->user_id == $context->userId) {
+            $isOwner = true;
+        } elseif (!$context->isAuthorized() && $file->anonymous_id == $context->guestId) {
+            $isOwner = true;
+        }
+
+        if (!$isOwner) {
+            abort(403, 'У вас нет прав на удаление этого файла.');
+        }
     }
 }
