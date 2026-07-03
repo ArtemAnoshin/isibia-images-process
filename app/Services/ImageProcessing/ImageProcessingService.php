@@ -35,7 +35,6 @@ class ImageProcessingService
             $image = Image::decode($file);
             // Генерация базового имени файла и пути
             $baseFileName = $this->filenameGenerator->generate($file);
-            $serverPath = $this->pathResolver->path($baseFileName);
 
             // Resize
             if ($dto->needsResize()) {
@@ -44,11 +43,14 @@ class ImageProcessingService
                     $dto->maxWidth,
                     $dto->maxHeight
                 );
+
+                $baseFileName = $this->filenameGenerator->withSizeSuffix($baseFileName, $image->width(), $image->height());
             }
 
             // Миниатюры, водяной знак и прочее
 
             // Сохраняем изображение в нужном формате и качестве в стораже
+            $serverPath = $this->pathResolver->path($baseFileName);
             $image->save($serverPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
 
             $processedFiles[] = new ProcessedImageDTO(
