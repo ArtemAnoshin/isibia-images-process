@@ -7,14 +7,15 @@ use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
 use App\Services\ImageProcessing\DTOs\ImageProcessingResultDTO;
 use App\Services\ImageProcessing\Support\ProcessedImagesPathResolver;
 use App\Services\ImageProcessing\Processors\ResizeProcessor;
+use App\Services\ImageProcessing\Processors\ThumbnailsProcessor;
 use App\Services\ImageProcessing\Support\ProcessedImageFilenameGenerator;
 use Intervention\Image\Laravel\Facades\Image;
-use Illuminate\Support\Facades\Storage;
 
 class ImageProcessingService
 {
     public function __construct(
         protected ResizeProcessor $resizeProcessor,
+        protected ThumbnailsProcessor $thumbnailsProcessor,
         protected ProcessedImagesPathResolver $pathResolver,
         protected ProcessedImageFilenameGenerator $filenameGenerator,
     ) {
@@ -47,7 +48,37 @@ class ImageProcessingService
                 $baseFileName = $this->filenameGenerator->withSizeSuffix($baseFileName, $image->width(), $image->height());
             }
 
-            // Миниатюры, водяной знак и прочее
+            // Миниатюры
+            if ($dto->needsThumbnails()) {
+                foreach ($dto->thumbnails as $thumbConfig) {
+                    // Клонируем изображение, чтобы не менять основной объект $image
+                    $thumbImage = clone $image;
+
+                    // Вызов процессора миниатюр
+                    $thumbImage = $this->thumbnailsProcessor->process($thumbImage, $thumbConfig['width'], $thumbConfig['height']);
+
+                    // Генерируем имя с суффиксом размеров
+                    $thumbName = $this->filenameGenerator->withSizeSuffix(
+                        $baseFileName,
+                        $thumbConfig['width'],
+                        $thumbConfig['height']
+                    );
+
+                    $thumbPath = $this->pathResolver->path($thumbName);
+
+                    // Сохранение миниатюры
+                    $thumbImage->save($thumbPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
+
+                    // Добавляем в список результатов
+                    $processedFiles[] = new ProcessedImageDTO(
+                        filename: $thumbName,
+                        serverPath: $thumbPath,
+                        downloadUrl: $this->pathResolver->url($thumbName),
+                    );
+                }
+            }
+
+            // водяной знак и прочее
 
             // Сохраняем изображение в нужном формате и качестве в стораже
             $serverPath = $this->pathResolver->path($baseFileName);
