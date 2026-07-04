@@ -39,9 +39,6 @@ defineProps<{
         <div v-if="flash.processed.isArchive" class="flex items-center justify-between border rounded p-3 bg-blue-50">
             <div>
                 <span class="font-medium">📦 Архив</span>
-                <span class="text-sm text-gray-600 ml-2">
-                    ({{ flash.processed.files?.length || 0 }} файлов)
-                </span>
             </div>
             <a
                 :href="flash.processed.downloadUrl"
