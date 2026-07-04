@@ -13,6 +13,9 @@ class ImageProcessingRequestDTO
     public function __construct(
         public readonly UserContext $userContext,
 
+        /**
+         * @var UploadedFile[] Массив загруженных файлов для обработки
+         */
         public readonly array $files,
 
         public readonly int $compression,

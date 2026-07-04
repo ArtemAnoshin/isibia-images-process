@@ -41,9 +41,8 @@ const handleFile = (e: Event) => {
 
             <WatermarkPositioner v-model="wm" />
 
-            <!-- задел под canvas -->
             <div class="border rounded p-2 text-sm text-gray-400">
-                Canvas (позиционирование) — следующий шаг
+                Прозрачность
             </div>
 
             <input

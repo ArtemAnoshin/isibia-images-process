@@ -3,7 +3,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\UserIdentifierHelper;
 use App\Http\Requests\ProcessPhotosRequest;
 use App\Models\ProcessedFile;
 use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;

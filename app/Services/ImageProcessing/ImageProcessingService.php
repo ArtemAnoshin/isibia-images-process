@@ -8,6 +8,7 @@ use App\Services\ImageProcessing\DTOs\ImageProcessingResultDTO;
 use App\Services\ImageProcessing\Support\ProcessedImagesPathResolver;
 use App\Services\ImageProcessing\Processors\ResizeProcessor;
 use App\Services\ImageProcessing\Processors\ThumbnailsProcessor;
+use App\Services\ImageProcessing\Processors\WatermarkProcessor;
 use App\Services\ImageProcessing\Support\ProcessedImageFilenameGenerator;
 use Intervention\Image\Laravel\Facades\Image;
 
@@ -16,6 +17,7 @@ class ImageProcessingService
     public function __construct(
         protected ResizeProcessor $resizeProcessor,
         protected ThumbnailsProcessor $thumbnailsProcessor,
+        protected WatermarkProcessor $watermarkProcessor,
         protected ProcessedImagesPathResolver $pathResolver,
         protected ProcessedImageFilenameGenerator $filenameGenerator,
     ) {
@@ -25,39 +27,47 @@ class ImageProcessingService
     {
         $processedFiles = [];
 
-        // ✅ Используем метод из контекста для получения имени папки
-        $userDirectory = $dto->userContext->getUserDirectory();
-
-        // Создаем директорию для пользователя, если ее нет
-        $this->pathResolver->setUserDirectory($userDirectory);
-        $this->pathResolver->ensureDirectoryExists();
+        // Создание папки пользователя
+        $this->setUserDirectory($dto);
 
         foreach ($dto->files as $file) {
-            $image = Image::decode($file);
-            // Генерация базового имени файла и пути
+            // Генерация базового имени загруженного файла
             $baseFileName = $this->filenameGenerator->generate($file);
+
+            // Начало работы пакета Intervention
+            $baseImage = Image::decode($file);
 
             // Resize
             if ($dto->needsResize()) {
-                $image = $this->resizeProcessor->process(
-                    $image,
+                // обработка
+                $baseImage = $this->resizeProcessor->process(
+                    $baseImage,
                     $dto->maxWidth,
                     $dto->maxHeight
                 );
 
-                $baseFileName = $this->filenameGenerator->withSizeSuffix($baseFileName, $image->width(), $image->height());
+                // имя файла
+                $baseFileName = $this->filenameGenerator->withSizeSuffix(
+                    $baseFileName,
+                    $baseImage->width(),
+                    $baseImage->height()
+                );
             }
 
             // Миниатюры
             if ($dto->needsThumbnails()) {
                 foreach ($dto->thumbnails as $thumbConfig) {
                     // Клонируем изображение, чтобы не менять основной объект $image
-                    $thumbImage = clone $image;
+                    $thumbImage = clone $baseImage;
 
-                    // Вызов процессора миниатюр
-                    $thumbImage = $this->thumbnailsProcessor->process($thumbImage, $thumbConfig['width'], $thumbConfig['height']);
+                    // обработка
+                    $thumbImage = $this->thumbnailsProcessor->process(
+                        $thumbImage,
+                        $thumbConfig['width'],
+                        $thumbConfig['height']
+                    );
 
-                    // Генерируем имя с суффиксом размеров
+                    // имя файла
                     $thumbName = $this->filenameGenerator->withSizeSuffix(
                         $baseFileName,
                         $thumbConfig['width'],
@@ -78,17 +88,35 @@ class ImageProcessingService
                 }
             }
 
-            // водяной знак и прочее
-
             // Сохраняем изображение в нужном формате и качестве в стораже
-            $serverPath = $this->pathResolver->path($baseFileName);
-            $image->save($serverPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
+            $baseServerPath = $this->pathResolver->path($baseFileName);
+            $baseImage->save($baseServerPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
 
             $processedFiles[] = new ProcessedImageDTO(
                 filename: $baseFileName,
-                serverPath: $serverPath,
+                serverPath: $baseServerPath,
                 downloadUrl: $this->pathResolver->url($baseFileName),
             );
+        }
+
+        if ($dto->needsWatermark()) {
+            foreach ($processedFiles as $processedImage) {
+                $watermarkImage = Image::decode($processedImage->serverPath);
+
+                // Делегируем всю работу процессору
+                $watermarkImage = $this->watermarkProcessor->process(
+                    $watermarkImage,
+                    $dto->watermarkType,
+                    $dto->watermarkText,
+                    $dto->watermarkImage,
+                    $dto->watermarkX,
+                    $dto->watermarkY,
+                    $dto->watermarkScale,
+                    $dto->watermarkOpacity
+                );
+
+                $watermarkImage->save();
+            }
         }
 
         $archiveUrl = null;
@@ -113,5 +141,16 @@ class ImageProcessingService
             originalFileName: count($processedFiles) === 1 ? $baseFileName : $archiveName,
             files: $processedFiles,
         );
+    }
+
+    private function setUserDirectory(ImageProcessingRequestDTO $dto)
+    {
+        $userDirectory = $dto->userContext->getUserDirectory();
+
+        // Создаем директорию для пользователя, если ее нет
+        $this->pathResolver->setUserDirectory($userDirectory);
+        $this->pathResolver->ensureDirectoryExists();
+
+        return $userDirectory;
     }
 }
