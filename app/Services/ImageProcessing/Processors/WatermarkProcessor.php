@@ -53,12 +53,17 @@ class WatermarkProcessor
         float $y,
         int $opacity
     ): ImageInterface {
-        $pixelX = (int) ($x * $image->width());
-        $pixelY = (int) ($y * $image->height());
+        // 1. Считаем процент смещения относительно холста превью
+        $percentX = $x / 400;
+        $percentY = $y / 300;
+
+        // 2. Переводим проценты в пиксели реального изображения
+        $pixelX = (int) ($percentX * $image->width());
+        $pixelY = (int) ($percentY * $image->height());
 
         // В v4 текст накладывается через метод text() с использованием FontFactory
         $image->text($text, $pixelX, $pixelY, function (FontFactory $font) use ($opacity) {
-            $font->filename(resource_path('fonts/arial.ttf')); // Путь к шрифту
+            $font->filepath(resource_path('fonts/arial.ttf'));
             $font->size(24);
             $font->color('#ffffff');
             $font->align('center');
@@ -83,8 +88,13 @@ class WatermarkProcessor
         $newWidth = (int) ($baseWidth * $scale);
         $wmImage->scale(width: $newWidth);
 
-        $pixelX = (int) ($x * $baseWidth);
-        $pixelY = (int) ($y * $baseHeight);
+        // 1. Считаем процент смещения относительно холста превью
+        $percentX = $x / 400;
+        $percentY = $y / 300;
+
+        // 2. Переводим проценты в пиксели реального изображения
+        $pixelX = (int) ($percentX * $image->width());
+        $pixelY = (int) ($percentY * $image->height());
 
         // В v4 метод place принимает изображение и координаты
         $image->insert($wmImage, $pixelX, $pixelY);
