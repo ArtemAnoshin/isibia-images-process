@@ -114,6 +114,7 @@ const deleteAllFiles = () => {
                                 ref="imageUploaderWithPreviewRef"
                                 @update:files="form.files = $event"
                             />
+
                         </div>
 
                         <!-- Настройки -->
