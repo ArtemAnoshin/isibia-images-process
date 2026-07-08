@@ -61,7 +61,7 @@ class PhotoController extends Controller
         // Получим все файлы пользователя
         $updatedFiles = $repository->filesForCurrentUser($userContext);
 
-        return Inertia::render('ProcessPhotos/Form', [
+        return to_route('process-photos.form')->with([
             'files' => $updatedFiles,
             'flash' => [
                 'success' => 'Файлы обработаны',
@@ -110,7 +110,7 @@ class PhotoController extends Controller
         $userContext = UserContext::fromRequest($request);
         $repository = app()->make(ProcessedFileRepository::class);
 
-        return Inertia::render('ProcessPhotos/Form', [
+        return to_route('process-photos.form')->with([
             'files' => $repository->filesForCurrentUser($userContext),
             'flash' => [
                 'success' => 'Файлы успешно удалены',

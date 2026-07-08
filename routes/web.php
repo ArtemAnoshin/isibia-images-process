@@ -9,7 +9,7 @@ use Intervention\Image\Typography\FontFactory;
 use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\Alignment;
 
-Route::inertia('/', 'Welcome', [
+Route::inertia('/welcome', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
@@ -20,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
 require __DIR__.'/settings.php';
 
 // Форма для обработки изображений (GET)
-Route::get('process-photos', [PhotoController::class, 'index'])
+Route::get('/', [PhotoController::class, 'index'])
     ->name('process-photos.form');
 
 // Обработка изображений (POST)
