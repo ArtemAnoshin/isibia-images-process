@@ -3,10 +3,12 @@ import { Head, useForm, usePage, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import FlashMessages from '@/components/ProcessPhotoFormPartials/FlashMessages.vue'
 import ImageCompressionSetting from '@/components/ProcessPhotoFormPartials/ImageCompressionSetting.vue'
+import ImageFormatSetting from '@/components/ProcessPhotoFormPartials/ImageFormatSetting.vue'
 import ImageMaxResolutionSetting from '@/components/ProcessPhotoFormPartials/ImageMaxResolutionSetting.vue'
 import ImageUploaderWithPreview from '@/components/ProcessPhotoFormPartials/ImageUploaderWithPreview.vue'
 import ThumbnailsBuilder from '@/components/ProcessPhotoFormPartials/ThumbnailsBuilder.vue'
 import WatermarkSettings from '@/components/ProcessPhotoFormPartials/WatermarkSettings.vue'
+import Wrapper from '@/components/ProcessPhotoFormPartials/Wrapper.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import FileList from '@/pages/ProcessPhotos/FileList.vue';
 import type { PageProps } from '@/types/files'
@@ -21,6 +23,8 @@ const form = useForm({
     files: [] as File[],
 
     compression: 80,
+
+    format: 'original' as 'original' | 'jpeg' | 'png' | 'webp',
 
     resolution: {
         width: null as number | null,
@@ -118,10 +122,22 @@ const deleteAllFiles = () => {
                         </div>
 
                         <!-- Настройки -->
+                        <h3 class="block text-gray-700 font-bold mb-2">
+                            <i class="fas fa-cog mr-2"></i>
+                            <span>Настройки обработки</span>
+                        </h3>
+
+                        <Wrapper
+                            :title="'Формат'"
+                        >
+                            <ImageFormatSetting
+                                v-model="form.format"
+                            />
+                        </Wrapper>
+
                         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                            <h3 class="text-lg font-semibold mb-4">
-                                Настройки обработки
-                            </h3>
+
+
 
                             <ImageCompressionSetting
                                 v-model="form.compression"
