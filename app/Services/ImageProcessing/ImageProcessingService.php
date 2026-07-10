@@ -11,6 +11,7 @@ use App\Services\ImageProcessing\Processors\ThumbnailsProcessor;
 use App\Services\ImageProcessing\Processors\WatermarkProcessor;
 use App\Services\ImageProcessing\Support\ProcessedImageFilenameGenerator;
 use Intervention\Image\Laravel\Facades\Image;
+use ZipArchive;
 
 class ImageProcessingService
 {
@@ -23,30 +24,39 @@ class ImageProcessingService
     ) {
     }
 
-    public function process(ImageProcessingRequestDTO $dto)
+    public function process(ImageProcessingRequestDTO $dto): ImageProcessingResultDTO
     {
         $processedFiles = [];
 
-        // Создание папки пользователя
+        // Подготовка окружения
         $this->setUserDirectory($dto);
 
         foreach ($dto->files as $file) {
-            // Генерация базового имени загруженного файла
-            $baseFileName = $this->filenameGenerator->generate($file);
+            // 1. Определение финального формата один раз
+            $isOriginalFormat = $dto->format === 'original';
+            $finalFormat = $isOriginalFormat
+                ? pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION)
+                : $dto->format;
 
-            // Начало работы пакета Intervention
+            // Нормализация jpg -> jpeg для Intervention
+            if ($finalFormat === 'jpg') {
+                $finalFormat = 'jpeg';
+            }
+
+            // 2. Генерация базового имени
+            $baseFileName = $this->filenameGenerator->generate($file, $finalFormat);
+
+            // 3. Загрузка изображения
             $baseImage = Image::decode($file);
 
-            // Resize
+            // 4. Resize (основного изображения)
             if ($dto->needsResize()) {
-                // обработка
                 $baseImage = $this->resizeProcessor->process(
                     $baseImage,
                     $dto->maxWidth,
                     $dto->maxHeight
                 );
 
-                // имя файла
                 $baseFileName = $this->filenameGenerator->withSizeSuffix(
                     $baseFileName,
                     $baseImage->width(),
@@ -54,58 +64,10 @@ class ImageProcessingService
                 );
             }
 
-            // Миниатюры
-            if ($dto->needsThumbnails()) {
-                foreach ($dto->thumbnails as $thumbConfig) {
-                    // Клонируем изображение, чтобы не менять основной объект $image
-                    $thumbImage = clone $baseImage;
-
-                    // обработка
-                    $thumbImage = $this->thumbnailsProcessor->process(
-                        $thumbImage,
-                        $thumbConfig['width'],
-                        $thumbConfig['height']
-                    );
-
-                    // имя файла
-                    $thumbName = $this->filenameGenerator->withSizeSuffix(
-                        $baseFileName,
-                        $thumbConfig['width'],
-                        $thumbConfig['height']
-                    );
-
-                    $thumbPath = $this->pathResolver->path($thumbName);
-
-                    // Сохранение миниатюры
-                    $thumbImage->save($thumbPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
-
-                    // Добавляем в список результатов
-                    $processedFiles[] = new ProcessedImageDTO(
-                        filename: $thumbName,
-                        serverPath: $thumbPath,
-                        downloadUrl: $this->pathResolver->url($thumbName),
-                    );
-                }
-            }
-
-            // Сохраняем изображение в нужном формате и качестве в стораже
-            $baseServerPath = $this->pathResolver->path($baseFileName);
-            $baseImage->save($baseServerPath, quality: $dto->compression, format: $file->getClientOriginalExtension());
-
-            $processedFiles[] = new ProcessedImageDTO(
-                filename: $baseFileName,
-                serverPath: $baseServerPath,
-                downloadUrl: $this->pathResolver->url($baseFileName),
-            );
-        }
-
-        if ($dto->needsWatermark()) {
-            foreach ($processedFiles as $processedImage) {
-                $watermarkImage = Image::decode($processedImage->serverPath);
-
-                // Делегируем всю работу процессору
-                $watermarkImage = $this->watermarkProcessor->process(
-                    $watermarkImage,
+            // 5. Watermark (накладываем ДО сохранения, чтобы не читать файл с диска повторно)
+            if ($dto->needsWatermark()) {
+                $baseImage = $this->watermarkProcessor->process(
+                    $baseImage,
                     $dto->watermarkType,
                     $dto->watermarkText,
                     $dto->watermarkImage,
@@ -114,43 +76,105 @@ class ImageProcessingService
                     $dto->watermarkScale,
                     $dto->watermarkOpacity
                 );
-
-                $watermarkImage->save();
             }
-        }
 
-        $archiveUrl = null;
+            // 6. Сохранение основного изображения
+            $baseServerPath = $this->pathResolver->path($baseFileName);
+            $baseImage->save($baseServerPath, quality: $dto->compression, format: $finalFormat);
 
-        if (count($processedFiles) > 1) {
-            // Создаем архив из обработанных файлов
-            $archiveName = date('Ymd_His', time()) . '_processed_images.zip';
-            $archivePath = $this->pathResolver->path($archiveName);
-            $zip = new \ZipArchive();
-            if ($zip->open($archivePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
-                foreach ($processedFiles as $file) {
-                    $zip->addFile($file->serverPath, $file->filename);
+            $processedFiles[] = new ProcessedImageDTO(
+                filename: $baseFileName,
+                serverPath: $baseServerPath,
+                downloadUrl: $this->pathResolver->url($baseFileName),
+            );
+
+            // 7. Генерация миниатюр
+            if ($dto->needsThumbnails()) {
+                foreach ($dto->thumbnails as $thumbConfig) {
+                    // Клонируем уже обработанное (ресайз + водяной знак) изображение
+                    $thumbImage = clone $baseImage;
+
+                    $thumbImage = $this->thumbnailsProcessor->process(
+                        $thumbImage,
+                        $thumbConfig['width'],
+                        $thumbConfig['height']
+                    );
+
+                    $thumbName = $this->filenameGenerator->withSizeSuffix(
+                        $baseFileName,
+                        $thumbConfig['width'],
+                        $thumbConfig['height']
+                    );
+
+                    $thumbPath = $this->pathResolver->path($thumbName);
+
+                    // Сохраняем миниатюру
+                    $thumbImage->save($thumbPath, quality: $dto->compression, format: $finalFormat);
+
+                    // Освобождаем память сразу после сохранения миниатюры
+                    unset($thumbImage);
+
+                    $processedFiles[] = new ProcessedImageDTO(
+                        filename: $thumbName,
+                        serverPath: $thumbPath,
+                        downloadUrl: $this->pathResolver->url($thumbName),
+                    );
                 }
-                $zip->close();
-                $archiveUrl = $this->pathResolver->url($archiveName);
             }
+
+            // Освобождаем память основного изображения перед следующей итерацией цикла
+            unset($baseImage);
         }
 
-        return new ImageProcessingResultDTO(
-            isArchive: count($processedFiles) === 1 ? false : true,
-            downloadUrl: count($processedFiles) === 1 ? $processedFiles[0]->downloadUrl : $archiveUrl,
-            originalFileName: count($processedFiles) === 1 ? $baseFileName : $archiveName,
-            files: $processedFiles,
-        );
+        // 8. Создание архива (если нужно)
+        $result = $this->prepareResult($processedFiles);
+
+        return $result;
     }
 
-    private function setUserDirectory(ImageProcessingRequestDTO $dto)
+    private function prepareResult(array $processedFiles): ImageProcessingResultDTO
+    {
+        if (count($processedFiles) === 1) {
+            return new ImageProcessingResultDTO(
+                isArchive: false,
+                downloadUrl: $processedFiles[0]->downloadUrl,
+                originalFileName: $processedFiles[0]->filename,
+                files: $processedFiles,
+            );
+        }
+
+        // Создаем архив
+        $archiveName = date('Ymd_His') . '_processed_images.zip';
+        $archivePath = $this->pathResolver->path($archiveName);
+
+        $zip = new ZipArchive();
+        $isOpen = $zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+        if ($isOpen === true) {
+            foreach ($processedFiles as $file) {
+                // Защита от Zip Slip: используем только имя файла без путей
+                $safeName = basename($file->filename);
+                $zip->addFile($file->serverPath, $safeName);
+            }
+            $zip->close();
+
+            return new ImageProcessingResultDTO(
+                isArchive: true,
+                downloadUrl: $this->pathResolver->url($archiveName),
+                originalFileName: $archiveName,
+                files: $processedFiles,
+            );
+        }
+
+        // Если архив создать не удалось, возвращаем первый файл или ошибку
+        // В реальном проекте лучше бросить исключение
+        throw new \RuntimeException("Failed to create zip archive at: {$archivePath}");
+    }
+
+    private function setUserDirectory(ImageProcessingRequestDTO $dto): void
     {
         $userDirectory = $dto->userContext->getUserDirectory();
-
-        // Создаем директорию для пользователя, если ее нет
         $this->pathResolver->setUserDirectory($userDirectory);
         $this->pathResolver->ensureDirectoryExists();
-
-        return $userDirectory;
     }
 }

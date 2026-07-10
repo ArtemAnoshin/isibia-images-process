@@ -26,6 +26,8 @@ class ProcessPhotosRequest extends FormRequest
             'files' => ['required', 'array', 'max:10'],
             'files.*' => ['image', 'max:10240'], // 10MB
 
+            'format' => ['nullable', 'string', 'in:original,jpeg,png,webp'],
+
             'compression' => ['required', 'integer', 'between:10,90'],
 
             'resolution.width' => ['nullable', 'integer', 'min:1'],

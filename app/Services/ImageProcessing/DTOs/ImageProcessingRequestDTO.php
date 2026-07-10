@@ -18,6 +18,8 @@ class ImageProcessingRequestDTO
          */
         public readonly array $files,
 
+        public readonly string $format,
+
         public readonly int $compression,
 
         public readonly ?int $maxWidth,
@@ -47,6 +49,11 @@ class ImageProcessingRequestDTO
         return $this->watermarkEnabled;
     }
 
+    public function needsReformat(): bool
+    {
+        return $this->format !== 'original';
+    }
+
     public function usesTextWatermark(): bool
     {
         return $this->watermarkType === 'text';
@@ -68,6 +75,8 @@ class ImageProcessingRequestDTO
             userContext: $userContext,
 
             files: $data['files'],
+
+            format: $data['format'] ?? 'original',
 
             compression: $data['compression'],
 

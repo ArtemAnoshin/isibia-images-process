@@ -8,12 +8,17 @@ use Illuminate\Support\Str;
 class ProcessedImageFilenameGenerator
 {
     public function generate(
-        UploadedFile $file
+        UploadedFile $file,
+        string $format = null
     ): string {
 
         $extension = strtolower(
             $file->getClientOriginalExtension()
         );
+
+        if ($format && $format !== 'original') {
+            $extension = $format;
+        }
 
         return Str::uuid() . '.' . $extension;
     }
