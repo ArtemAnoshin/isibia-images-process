@@ -131,7 +131,7 @@ const deleteAllFiles = () => {
                             <span>Настройки обработки</span>
                         </h3>
 
-                        <Wrapper :title="'Формат'">
+                        <Wrapper :title="'Формат'" :class="'z-100'">
                             <ImageFormatSetting
                                 v-model="form.format"
                             />
