@@ -5,6 +5,7 @@
 
     const page = usePage();
 
+    // Почта разработчика, показывается в уведомлении об условиях работы сервиса
     const contactEmail = computed(() => page.props.contact_email as string);
 </script>
 

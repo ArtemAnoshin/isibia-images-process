@@ -4,6 +4,7 @@ import { ref, computed } from 'vue'
 import FlashMessages from '@/components/ProcessPhotoFormPartials/FlashMessages.vue'
 import ImageCompressionSetting from '@/components/ProcessPhotoFormPartials/ImageCompressionSetting.vue'
 import ImageFormatSetting from '@/components/ProcessPhotoFormPartials/ImageFormatSetting.vue'
+import ImageOriginalFileNameSetting from '@/components/ProcessPhotoFormPartials/ImageOriginalFileNameSetting.vue'
 import ImageMaxResolutionSetting from '@/components/ProcessPhotoFormPartials/ImageMaxResolutionSetting.vue'
 import ImageUploaderWithPreview from '@/components/ProcessPhotoFormPartials/ImageUploaderWithPreview.vue'
 import ThumbnailsBuilder from '@/components/ProcessPhotoFormPartials/ThumbnailsBuilder.vue'
@@ -25,6 +26,9 @@ const form = useForm({
     compression: 80,
 
     format: 'original' as 'original' | 'jpeg' | 'png' | 'webp',
+
+    // Сохранять оригинальное имя файлов
+    originalFileName: true,
 
     resolution: {
         width: null as number | null,
@@ -127,13 +131,18 @@ const deleteAllFiles = () => {
                             <span>Настройки обработки</span>
                         </h3>
 
-                        <Wrapper
-                            :title="'Формат'"
-                        >
+                        <Wrapper :title="'Формат'">
                             <ImageFormatSetting
                                 v-model="form.format"
                             />
                         </Wrapper>
+
+                        <Wrapper :title="'Сохранять оригинальное имя файла'">
+                            <ImageOriginalFileNameSetting
+                                v-model="form.originalFileName"
+                            />
+                        </Wrapper>
+
 
                         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
 
