@@ -28,6 +28,8 @@ class ProcessPhotosRequest extends FormRequest
 
             'format' => ['nullable', 'string', 'in:original,jpeg,png,webp'],
 
+            'originalFileName' => ['boolean'],
+
             'compression' => ['required', 'integer', 'between:10,90'],
 
             'resolution.width' => ['nullable', 'integer', 'min:1'],

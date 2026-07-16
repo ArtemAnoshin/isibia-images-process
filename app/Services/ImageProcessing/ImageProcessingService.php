@@ -38,13 +38,12 @@ class ImageProcessingService
                 ? pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION)
                 : $dto->format;
 
-            // Нормализация jpg -> jpeg для Intervention
-            if ($finalFormat === 'jpg') {
-                $finalFormat = 'jpeg';
-            }
-
             // 2. Генерация базового имени
-            $baseFileName = $this->filenameGenerator->generate($file, $finalFormat);
+            $baseFileName = $this->filenameGenerator->original($file, $finalFormat);
+
+            if ($dto->needsGenerateName()) {
+                $baseFileName = $this->filenameGenerator->generate($file, $finalFormat);
+            }
 
             // 3. Загрузка изображения
             $baseImage = Image::decode($file);

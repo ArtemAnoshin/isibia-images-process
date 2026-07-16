@@ -20,6 +20,8 @@ class ImageProcessingRequestDTO
 
         public readonly string $format,
 
+        public readonly bool $originalFileName,
+
         public readonly int $compression,
 
         public readonly ?int $maxWidth,
@@ -42,6 +44,11 @@ class ImageProcessingRequestDTO
     {
         return $this->maxWidth !== null
             || $this->maxHeight !== null;
+    }
+
+    public function needsGenerateName(): bool
+    {
+        return !$this->originalFileName;
     }
 
     public function needsWatermark(): bool
@@ -77,6 +84,8 @@ class ImageProcessingRequestDTO
             files: $data['files'],
 
             format: $data['format'] ?? 'original',
+
+            originalFileName: $data['originalFileName'] ?? true,
 
             compression: $data['compression'],
 

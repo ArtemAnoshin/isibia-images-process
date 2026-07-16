@@ -23,6 +23,13 @@ class ProcessedImageFilenameGenerator
         return Str::uuid() . '.' . $extension;
     }
 
+    public function original(UploadedFile $file, string $newFormat): string
+    {
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+        return $originalName . '.' . $newFormat;
+    }
+
     /**
      * Добавляет суффикс размеров к базовому имени
      * Пример: image_uuid.jpg -> image_uuid_800x600.jpg
