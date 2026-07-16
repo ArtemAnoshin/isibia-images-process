@@ -39,6 +39,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'csrf' => csrf_token(),
             'name' => config('app.name'),
+            'contact_email' => env('DEVELOPER_CONTACT_EMAIL'),
             'auth' => [
                 'user' => $request->user(),
             ],

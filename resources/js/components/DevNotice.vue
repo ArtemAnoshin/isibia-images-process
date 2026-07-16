@@ -71,8 +71,8 @@ const COOKIE_DAYS = 365;
 
 const props = defineProps({
   contactEmail: {
-    type: String,
-    default: 'emai@emai.com',
+    type: String || null,
+    default: '',
   },
 });
 
