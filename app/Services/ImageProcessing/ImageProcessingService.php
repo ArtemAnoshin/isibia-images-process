@@ -27,6 +27,7 @@ class ImageProcessingService
     public function process(ImageProcessingRequestDTO $dto): ImageProcessingResultDTO
     {
         $processedFiles = [];
+        $compression = $dto->compression ? 80 : 100;
 
         // Подготовка окружения
         $this->setUserDirectory($dto);
@@ -79,7 +80,7 @@ class ImageProcessingService
 
             // 6. Сохранение основного изображения
             $baseServerPath = $this->pathResolver->path($baseFileName);
-            $baseImage->save($baseServerPath, quality: $dto->compression, format: $finalFormat);
+            $baseImage->save($baseServerPath, quality: $compression, format: $finalFormat);
 
             $processedFiles[] = new ProcessedImageDTO(
                 filename: $baseFileName,
@@ -108,7 +109,7 @@ class ImageProcessingService
                     $thumbPath = $this->pathResolver->path($thumbName);
 
                     // Сохраняем миниатюру
-                    $thumbImage->save($thumbPath, quality: $dto->compression, format: $finalFormat);
+                    $thumbImage->save($thumbPath, quality: $compression, format: $finalFormat);
 
                     // Освобождаем память сразу после сохранения миниатюры
                     unset($thumbImage);

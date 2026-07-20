@@ -30,7 +30,7 @@ class ProcessPhotosRequest extends FormRequest
 
             'originalFileName' => ['boolean'],
 
-            'compression' => ['required', 'integer', 'between:10,90'],
+            'compression' => ['boolean'],
 
             'resolution.width' => ['nullable', 'integer', 'min:1'],
             'resolution.height' => ['nullable', 'integer', 'min:1'],

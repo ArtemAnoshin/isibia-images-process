@@ -23,7 +23,7 @@ const imageUploaderWithPreviewRef = ref(null)
 const form = useForm({
     files: [] as File[],
 
-    compression: 80,
+    compression: true,
 
     format: 'original' as 'original' | 'jpeg' | 'png' | 'webp',
 
@@ -124,7 +124,6 @@ const deleteAllFiles = () => {
                                 ref="imageUploaderWithPreviewRef"
                                 @update:files="form.files = $event"
                             />
-
                         </div>
 
                         <!-- Настройки -->
@@ -145,15 +144,13 @@ const deleteAllFiles = () => {
                             />
                         </Wrapper>
 
-
-                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-
-
-
+                        <Wrapper :title="'Оптимизировать для веб'">
                             <ImageCompressionSetting
                                 v-model="form.compression"
                             />
+                        </Wrapper>
 
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                             <ImageMaxResolutionSetting
                                 v-model="form.resolution"
                             />
