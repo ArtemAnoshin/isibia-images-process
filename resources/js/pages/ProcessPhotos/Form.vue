@@ -4,8 +4,8 @@ import { ref, computed } from 'vue'
 import FlashMessages from '@/components/ProcessPhotoFormPartials/FlashMessages.vue'
 import ImageCompressionSetting from '@/components/ProcessPhotoFormPartials/ImageCompressionSetting.vue'
 import ImageFormatSetting from '@/components/ProcessPhotoFormPartials/ImageFormatSetting.vue'
-import ImageOriginalFileNameSetting from '@/components/ProcessPhotoFormPartials/ImageOriginalFileNameSetting.vue'
 import ImageMaxResolutionSetting from '@/components/ProcessPhotoFormPartials/ImageMaxResolutionSetting.vue'
+import ImageOriginalFileNameSetting from '@/components/ProcessPhotoFormPartials/ImageOriginalFileNameSetting.vue'
 import ImageUploaderWithPreview from '@/components/ProcessPhotoFormPartials/ImageUploaderWithPreview.vue'
 import ThumbnailsBuilder from '@/components/ProcessPhotoFormPartials/ThumbnailsBuilder.vue'
 import WatermarkSettings from '@/components/ProcessPhotoFormPartials/WatermarkSettings.vue'
@@ -95,7 +95,9 @@ const deleteAllFiles = () => {
 </script>
 
 <template>
-    <Head title="Process Photos" />
+    <Head
+        title="Обработка фотографий для вашего сайта"
+    />
 
     <AppLayout>
         <div class="container mx-auto px-4 py-8">
