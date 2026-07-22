@@ -10,7 +10,7 @@
 </script>
 
 <template>
-    <div>
+    <div class="w-full mx-auto">
         <slot />
         <DevNotice :contact-email="contactEmail"/>
     </div>
