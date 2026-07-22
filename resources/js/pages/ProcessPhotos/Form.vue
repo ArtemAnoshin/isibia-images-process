@@ -37,7 +37,7 @@ const form = useForm({
 
     thumbnails: [] as { width: number | null; height: number | null }[],
 
-    watermark: {
+    /*watermark: {
         enabled: false,
         type: 'text',
         position: 'bottom-right',
@@ -49,7 +49,7 @@ const form = useForm({
         x: 0,
         y: 0,
         scale: 1
-    }
+    }*/
 })
 
 // 🚀 submit
@@ -156,15 +156,17 @@ const deleteAllFiles = () => {
                             />
                         </Wrapper>
 
-                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <Wrapper :title="'Добавить миниатюры'">
                             <ThumbnailsBuilder
                                 v-model="form.thumbnails"
                             />
+                        </Wrapper>
 
+                        <!--<div class="mb-6 p-4 bg-gray-50 rounded-lg">
                             <WatermarkSettings
                                 v-model="form.watermark"
                             />
-                        </div>
+                        </div>-->
 
                         <!-- Кнопка -->
                         <button
