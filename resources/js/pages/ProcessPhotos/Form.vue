@@ -31,8 +31,8 @@ const form = useForm({
     originalFileName: true,
 
     resolution: {
-        width: null as number | null,
-        height: null as number | null
+        width: 1920 as number | null,
+        height: 1080 as number | null
     },
 
     thumbnails: [] as { width: number | null; height: number | null }[],
@@ -150,11 +150,13 @@ const deleteAllFiles = () => {
                             />
                         </Wrapper>
 
-                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <Wrapper :title="'Максимальное разрешение в пикселах'">
                             <ImageMaxResolutionSetting
                                 v-model="form.resolution"
                             />
+                        </Wrapper>
 
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                             <ThumbnailsBuilder
                                 v-model="form.thumbnails"
                             />
