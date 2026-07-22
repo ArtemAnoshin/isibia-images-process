@@ -1,19 +1,37 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 interface Props {
     title: string
-    description?: string
+    description?: string,
+    accent?: string,
+    open?: boolean,
+    icon?: string
 }
 
-withDefaults(defineProps<Props>(), {
-    description: ''
+const props = withDefaults(defineProps<Props>(), {
+    description: '',
+    accent: 'border-gray-200',
+    open: false,
+    icon: 'fas fa-file-signature'
 })
+const isOpen = ref(props.open)
 </script>
 
 <template>
-    <div class="mb-6 p-5 bg-white border border-gray-200 rounded-lg shadow-sm wrapper">
+    <div
+        class="mb-6 p-5 bg-white border rounded-lg shadow-sm wrapper cursor-pointer"
+        :class="props.accent"
+        @click="isOpen = !isOpen"
+    >
         <!-- Заголовок и описание -->
-        <div class="mb-4">
-            <h4 class="text-md font-semibold text-gray-700 mb-1">
+        <div :class="isOpen && 'mb-4'">
+            <h4 class="text-md font-semibold text-gray-700" :class="isOpen && 'mb-1'">
+                <i
+                    v-if="icon"
+                    :class="icon"
+                    class="text-sm mr-2"
+                ></i>
                 {{ title }}
             </h4>
             <p
@@ -25,7 +43,11 @@ withDefaults(defineProps<Props>(), {
         </div>
 
         <!-- Контент (слот) -->
-        <div class="setting-content">
+        <div
+            class="setting-content"
+            v-show="isOpen"
+            @click.stop
+        >
             <slot />
         </div>
     </div>

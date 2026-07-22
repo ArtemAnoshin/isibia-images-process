@@ -132,31 +132,48 @@ const deleteAllFiles = () => {
                             <span>Настройки обработки</span>
                         </h3>
 
-                        <Wrapper :title="'Формат'" :class="'z-100'">
+                        <Wrapper
+                            :title="'Формат изображений'"
+                            :class="'z-100'"
+                            :icon="'fas fa-file-image'"
+                        >
                             <ImageFormatSetting
                                 v-model="form.format"
                             />
                         </Wrapper>
 
-                        <Wrapper :title="'Сохранять оригинальное имя файла'">
+                        <Wrapper
+                            :title="'Сохранять оригинальное имя файла'"
+                            :icon="'fas fa-file-signature'"
+                        >
                             <ImageOriginalFileNameSetting
                                 v-model="form.originalFileName"
                             />
                         </Wrapper>
 
-                        <Wrapper :title="'Оптимизировать для веб'">
+                        <Wrapper
+                            :title="'Оптимизировать для веб'"
+                            :icon="'fas fa-compress-arrows-alt'"
+                        >
                             <ImageCompressionSetting
                                 v-model="form.compression"
                             />
                         </Wrapper>
 
-                        <Wrapper :title="'Максимальное разрешение в пикселах'">
+                        <Wrapper
+                            :title="'Максимальное разрешение в пикселах'"
+                            :icon="'fas fa-expand'"
+                        >
                             <ImageMaxResolutionSetting
                                 v-model="form.resolution"
                             />
                         </Wrapper>
 
-                        <Wrapper :title="'Добавить миниатюры'">
+                        <Wrapper
+                            :title="'Добавить миниатюры'"
+                            :accent="'border-green-200'"
+                            :icon="'fas fa-images'"
+                        >
                             <ThumbnailsBuilder
                                 v-model="form.thumbnails"
                             />
@@ -172,7 +189,7 @@ const deleteAllFiles = () => {
                         <button
                             type="submit"
                             :disabled="form.processing || !form.files.length"
-                            class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                            class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
                         >
                             <span v-if="form.processing">
                                 Обработка...
