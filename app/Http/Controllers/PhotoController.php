@@ -80,8 +80,13 @@ class PhotoController extends Controller
         // Проверка прав: удалять можно только свои файлы
         $this->authorizeDelete($file, $userContext);
 
-        // Удаляем физический файл с диска (если нужно)
-        Storage::delete($file->path);
+        // Удаляем физический файл с диска
+        $relativePath = str_replace('/storage/', '', $file->path);
+
+        // Удаляем через Storage
+        if (Storage::disk('public')->exists($relativePath)) {
+            Storage::disk('public')->delete($relativePath);
+        }
 
         $file->delete();
 
@@ -92,6 +97,25 @@ class PhotoController extends Controller
     public function destroyAll(Request $request)
     {
         $userContext = UserContext::fromRequest($request);
+
+        // Получаем все файлы пользователя перед удалением
+        $files = ProcessedFile::where(function ($query) use ($userContext) {
+            if ($userContext->isAuthorized()) {
+                $query->where('user_id', $userContext->userId);
+            } else {
+                $query->where('anonymous_id', $userContext->guestId);
+            }
+        })->get();
+
+        // Удаляем файлы с диска
+        foreach ($files as $file) {
+            $relativePath = str_replace('/storage/', '', $file->path);
+
+            // Удаляем через Storage
+            if (Storage::disk('public')->exists($relativePath)) {
+                Storage::disk('public')->delete($relativePath);
+            }
+        }
 
         // Удаляем все файлы текущего пользователя/гостя
         ProcessedFile::where(function ($query) use ($userContext) {
