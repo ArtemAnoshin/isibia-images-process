@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Каждый час (или раз в сутки)
+// Каждый час
 Schedule::command('files:cleanup-expired')->hourly();
