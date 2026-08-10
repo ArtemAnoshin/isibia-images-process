@@ -105,12 +105,20 @@ const deleteAllFiles = () => {
 
                 <!-- Заголовок -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h1 class="text-2xl font-bold mb-4">
-                        Обработка фотографий
-                    </h1>
-                    <p class="text-gray-600">
-                        Загрузите фотографии и настройте параметры обработки
-                    </p>
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold">Обработка фотографий</h1>
+                            <p class="text-gray-600">Загрузите фотографии и настройте параметры обработки</p>
+                        </div>
+                        <a href="/about-developer"
+                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-green-400 hover:from-blue-700 hover:to-green-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+                        >
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            Знакомство с разработчиком
+                        </a>
+                    </div>
                 </div>
 
                 <FlashMessages :flash="flash" />

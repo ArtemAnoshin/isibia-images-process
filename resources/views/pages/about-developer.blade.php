@@ -110,6 +110,26 @@
             transform: translateY(0);
         }
 
+        .btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--light);
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 14px 36px;
+            border-radius: 50px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.3px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
         /* ===== SECTION SPACING ===== */
         section {
             padding: 72px 0;
@@ -504,7 +524,10 @@
                         Гибкие форматы сотрудничества — part-time, full-time.
                     </p>
 
-                    <a href="#contact" class="btn-primary">Обсудить проект →</a>
+                    <div class="hero-buttons" style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 28px;">
+                        <a href="#contact" class="btn-primary">Обсудить проект →</a>
+                        <a href="/" class="btn-secondary">На главную</a>
+                    </div>
                 </div>
 
             </div>
