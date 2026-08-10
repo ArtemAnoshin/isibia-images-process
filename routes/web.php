@@ -1,13 +1,10 @@
 <?php
 
+use App\Http\Controllers\AboutDeveloperPageController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PhotoController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
-
-use Intervention\Image\ImageManager;
-use Intervention\Image\Typography\FontFactory;
-use Intervention\Image\Drivers\Imagick\Driver;
-use Intervention\Image\Alignment;
 
 Route::inertia('/welcome', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -31,23 +28,9 @@ Route::post('process-photos', [PhotoController::class, 'processPhotos'])
 Route::delete('/files/{file}', [PhotoController::class, 'destroy'])->name('destroy');
 Route::delete('/files', [PhotoController::class, 'destroyAll'])->name('destroyAll');
 
+// Страница о разработчике
+Route::get('/about-developer', [AboutDeveloperPageController::class, 'page'])
+    ->name('about-developer-page');
 
-/*Route::get('/test', function () {
-    // create test image
-    dd(public_path('test.jpg'));
-    $image = ImageManager::usingDriver(Driver::class)->decode(public_path('test.jpg'));
-
-    // write text to image
-    $image->text('The quick brown fox', 120, 100, function (FontFactory $font) {
-        $font->filepath(resource_path('fonts/arial.ttf'));
-        $font->size(70);
-        $font->color('fff');
-        $font->stroke('ff5500', 2);
-        $font->align(Alignment::CENTER, Alignment::TOP);
-        $font->lineHeight(1.6);
-        $font->angle(10);
-        $font->wrap(250);
-    });
-
-    $image->save(public_path('test_with_text.jpg'));
-});*/
+// Обработка запроса с контактной формы
+Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.send');
