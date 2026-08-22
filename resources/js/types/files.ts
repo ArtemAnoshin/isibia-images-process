@@ -1,9 +1,13 @@
 export interface ProcessedFile {
     id: number
-    originalName: string
+    original_name: string
     type: string
-    downloadUrl: string
-    expiresAt: string | null
+    download_url: string
+    expires_at: string | null
+    is_archive?: boolean
+    file_count?: number
+    size?: string | number
+    is_available?: boolean
 }
 
 export interface PageProps extends Record<string, any> {

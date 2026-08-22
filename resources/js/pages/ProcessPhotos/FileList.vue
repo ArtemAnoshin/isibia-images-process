@@ -1,18 +1,16 @@
 <script setup lang="ts">
+import type { ProcessedFile } from '@/types/files'
 
-// Пропсы
-defineProps({
-    processedFiles: {
-        type: Array,
-        required: true,
-        default: () => [],
-    },
-});
+withDefaults(defineProps<{
+    processedFiles: ProcessedFile[]
+}>(), {
+    processedFiles: () => [],
+})
 
 // Методы
 const emit = defineEmits(['delete', 'deleteAll']);
 
-const formatDate = (date) => {
+const formatDate = (date: string | null) => {
     if (!date) {
         return '';
     }
@@ -25,7 +23,7 @@ const formatDate = (date) => {
     });
 };
 
-const deleteFile = (id) => {
+const deleteFile = (id: number) => {
     if (confirm('Удалить этот файл?')) {
         emit('delete', id);
     }
@@ -132,4 +130,3 @@ const deleteAll = () => {
         </div>
     </div>
 </template>
-

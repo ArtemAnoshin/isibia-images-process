@@ -18,6 +18,8 @@ const page = usePage<PageProps>()
 const processedFiles = computed(() => page.props.files ?? [])
 const flash = computed(() => page.props.flash ?? {})
 const imageUploaderWithPreviewRef = ref(null)
+const isEmbeddedInPublicPage = typeof document !== 'undefined'
+    && document.querySelector('[data-public-home]') !== null
 
 // ✅ единый form
 const form = useForm({
@@ -96,7 +98,7 @@ const deleteAllFiles = () => {
 
 <template>
     <Head
-        title="Обработка фотографий для вашего сайта"
+        title="Пакетная обработка изображений онлайн — JPG, PNG, WebP"
     />
 
     <AppLayout>
@@ -107,7 +109,9 @@ const deleteAllFiles = () => {
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <div class="flex items-center justify-between flex-wrap gap-4">
                         <div>
-                            <h1 class="text-2xl font-bold">Обработка фотографий</h1>
+                            <component :is="isEmbeddedInPublicPage ? 'h2' : 'h1'" class="text-2xl font-bold">
+                                Настройки обработки фотографий
+                            </component>
                             <p class="text-gray-600">Загрузите фотографии и настройте параметры обработки</p>
                         </div>
                         <a href="/about-developer"

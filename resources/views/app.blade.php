@@ -1,3 +1,4 @@
+@php($isPublicHome = request()->routeIs('process-photos.form'))
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"  @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
@@ -44,7 +45,19 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        @if ($isPublicHome)
+            <title inertia>Пакетная обработка изображений онлайн — JPG, PNG, WebP | Isibia</title>
+            <meta name="description" content="Обрабатывайте изображения онлайн пакетно: изменяйте размер и формат JPG, PNG и WebP, оптимизируйте фотографии для сайта и создавайте миниатюры.">
+            <meta name="robots" content="index,follow">
+            <link rel="canonical" href="{{ url('/') }}">
+            <meta property="og:type" content="website">
+            <meta property="og:locale" content="ru_RU">
+            <meta property="og:title" content="Пакетная обработка изображений онлайн | Isibia">
+            <meta property="og:description" content="Изменяйте размер и формат изображений, оптимизируйте их для сайта и создавайте миниатюры пакетно.">
+            <meta property="og:url" content="{{ url('/') }}">
+        @else
+            <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        @endif
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -58,6 +71,10 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
-        @inertia
+        @if ($isPublicHome)
+            @include('pages.partials.process-photos-seo-shell')
+        @else
+            @inertia
+        @endif
     </body>
 </html>
