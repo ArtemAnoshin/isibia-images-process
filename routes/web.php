@@ -20,6 +20,23 @@ require __DIR__.'/settings.php';
 Route::get('/', [PhotoController::class, 'index'])
     ->name('process-photos.form');
 
+Route::get('/image-optimizer', [PhotoController::class, 'optimizer'])
+    ->name('images.optimizer');
+
+Route::get('/convert-images', [PhotoController::class, 'converter'])
+    ->name('images.converter');
+
+Route::get('/create-thumbnails', [PhotoController::class, 'thumbnails'])
+    ->name('images.thumbnails');
+
+Route::redirect('/compress-images', '/image-optimizer', 301);
+
+Route::get('/sitemap.xml', function () {
+    return response()
+        ->view('sitemap')
+        ->header('Content-Type', 'application/xml');
+})->name('sitemap');
+
 // Обработка изображений (POST)
 Route::post('process-photos', [PhotoController::class, 'processPhotos'])
     ->name('process-photos.process');

@@ -1,2 +1,4 @@
 User-agent: *
 Disallow:
+
+Sitemap: https://isibia-process-images.ru/sitemap.xml

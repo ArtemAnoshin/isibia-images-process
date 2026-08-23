@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class ProcessPhotosRequest extends FormRequest
 {
@@ -25,6 +26,9 @@ class ProcessPhotosRequest extends FormRequest
         return [
             'files' => ['required', 'array', 'max:10'],
             'files.*' => ['image', 'max:10240'], // 10MB
+
+            'source' => ['nullable', 'string', 'in:batch,optimizer,converter,thumbnails'],
+            'includeOriginal' => ['nullable', 'boolean'],
 
             'format' => ['nullable', 'string', 'in:original,jpeg,png,webp'],
 
@@ -49,5 +53,30 @@ class ProcessPhotosRequest extends FormRequest
             'watermark.y' => ['nullable', 'numeric'],
             'watermark.scale' => ['nullable', 'numeric'],
         ];
+    }
+
+    /**
+     * Дополнительная проверка размеров миниатюр.
+     *
+     * @return array<int, callable>
+     */
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            $thumbnails = $this->input('thumbnails', []);
+
+            if ($this->input('source') === 'thumbnails' && empty($thumbnails)) {
+                $validator->errors()->add('thumbnails', 'Добавьте хотя бы один размер миниатюры.');
+            }
+
+            foreach ($thumbnails as $index => $thumbnail) {
+                if (empty($thumbnail['width']) && empty($thumbnail['height'])) {
+                    $validator->errors()->add(
+                        "thumbnails.$index.width",
+                        'Укажите ширину или высоту миниатюры.',
+                    );
+                }
+            }
+        }];
     }
 }

@@ -5,6 +5,7 @@
                 Isibia <span class="text-violet-300">Process Images</span>
             </a>
             <nav aria-label="Основная навигация" class="flex items-center gap-5 text-sm">
+                @include('pages.partials.tools-dropdown')
                 <a href="#processor" class="hover:text-violet-300">Инструмент</a>
                 <a href="#features" class="hidden hover:text-violet-300 sm:inline">Возможности</a>
                 <a href="#faq" class="hidden hover:text-violet-300 sm:inline">Вопросы</a>
@@ -41,16 +42,19 @@
                 <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">Что можно сделать с изображениями</h2>
                 <div class="mt-8 grid gap-5 md:grid-cols-3">
                     <article class="rounded-2xl border border-slate-200 p-6">
-                        <h3 class="text-lg font-semibold">Оптимизировать для сайта</h3>
+                        <h3 class="text-lg font-semibold"><a href="{{ route('images.optimizer') }}" class="hover:text-violet-700">Оптимизировать изображения для сайта</a></h3>
                         <p class="mt-2 leading-7 text-slate-600">Уменьшить вес фотографий и ускорить загрузку страниц без лишних ручных операций.</p>
+                        <a href="{{ route('images.optimizer') }}" class="mt-4 inline-flex font-semibold text-violet-700">Открыть инструмент →</a>
                     </article>
                     <article class="rounded-2xl border border-slate-200 p-6">
-                        <h3 class="text-lg font-semibold">Изменить размер и формат</h3>
-                        <p class="mt-2 leading-7 text-slate-600">Задать максимальную ширину и высоту, сохранить исходный формат или выбрать JPEG, PNG либо WebP.</p>
+                        <h3 class="text-lg font-semibold"><a href="{{ route('images.converter') }}" class="hover:text-violet-700">Изменить формат изображений</a></h3>
+                        <p class="mt-2 leading-7 text-slate-600">Конвертировать сразу несколько изображений в JPEG, PNG или WebP.</p>
+                        <a href="{{ route('images.converter') }}" class="mt-4 inline-flex font-semibold text-violet-700">Открыть инструмент →</a>
                     </article>
                     <article class="rounded-2xl border border-slate-200 p-6">
-                        <h3 class="text-lg font-semibold">Создать миниатюры</h3>
+                        <h3 class="text-lg font-semibold"><a href="{{ route('images.thumbnails') }}" class="hover:text-violet-700">Создать миниатюры</a></h3>
                         <p class="mt-2 leading-7 text-slate-600">Подготовить несколько размеров изображений за одну пакетную обработку.</p>
+                        <a href="{{ route('images.thumbnails') }}" class="mt-4 inline-flex font-semibold text-violet-700">Открыть инструмент →</a>
                     </article>
                 </div>
             </div>

@@ -8,7 +8,7 @@ use Illuminate\Http\UploadedFile;
 class ImageProcessingRequestDTO
 {
     /**
-     * @param UploadedFile[] $files
+     * @param  UploadedFile[]  $files
      */
     public function __construct(
         public readonly UserContext $userContext,
@@ -29,6 +29,8 @@ class ImageProcessingRequestDTO
 
         public readonly array $thumbnails,
 
+        public readonly bool $includeOriginal,
+
         public readonly bool $watermarkEnabled,
         public readonly ?string $watermarkType,
         public readonly ?string $watermarkText,
@@ -37,8 +39,7 @@ class ImageProcessingRequestDTO
         public readonly ?float $watermarkY,
         public readonly ?float $watermarkScale,
         public readonly ?int $watermarkOpacity,
-    ) {
-    }
+    ) {}
 
     public function needsResize(): bool
     {
@@ -48,7 +49,7 @@ class ImageProcessingRequestDTO
 
     public function needsGenerateName(): bool
     {
-        return !$this->originalFileName;
+        return ! $this->originalFileName;
     }
 
     public function needsWatermark(): bool
@@ -73,7 +74,7 @@ class ImageProcessingRequestDTO
 
     public function needsThumbnails(): bool
     {
-        return !empty($this->thumbnails);
+        return ! empty($this->thumbnails);
     }
 
     public static function fromArray(array $data, UserContext $userContext): self
@@ -93,6 +94,7 @@ class ImageProcessingRequestDTO
             maxHeight: $data['resolution']['height'] ?? null,
 
             thumbnails: $data['thumbnails'] ?? [],
+            includeOriginal: $data['includeOriginal'] ?? true,
 
             watermarkEnabled: $data['watermark']['enabled'] ?? false,
             watermarkType: $data['watermark']['type'] ?? null,

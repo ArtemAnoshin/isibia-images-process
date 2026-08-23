@@ -1,14 +1,23 @@
 <!-- resources/js/Components/ImageFormatSetting.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
 
-type ImageFormat = 'original' | 'jpeg' | 'png' | 'webp'
+const props = withDefaults(
+    defineProps<{
+        allowOriginal?: boolean;
+    }>(),
+    {
+        allowOriginal: true,
+    },
+);
+
+type ImageFormat = 'original' | 'jpeg' | 'png' | 'webp';
 
 interface FormatOption {
-    value: ImageFormat
-    label: string
-    description: string
-    icon?: string
+    value: ImageFormat;
+    label: string;
+    description: string;
+    icon?: string;
 }
 
 const formats: FormatOption[] = [
@@ -16,45 +25,53 @@ const formats: FormatOption[] = [
         value: 'original',
         label: 'Не менять формат',
         description: 'Сохранить исходный формат изображения',
-        icon: '📄'
+        icon: '📄',
     },
     {
         value: 'jpeg',
         label: 'JPEG',
         description: 'Оптимально для фотографий, малый размер',
-        icon: '🖼️'
+        icon: '🖼️',
     },
     {
         value: 'png',
         label: 'PNG',
         description: 'Без потерь, поддерживает прозрачность',
-        icon: '🎨'
+        icon: '🎨',
     },
     {
         value: 'webp',
         label: 'WebP',
         description: 'Современный формат, лучшее сжатие',
-        icon: '⚡'
-    }
-]
+        icon: '⚡',
+    },
+];
 
 // v-model для выбранного формата
-const format = defineModel<ImageFormat>({ default: 'original' })
+const format = defineModel<ImageFormat>({ default: 'original' });
+
+const availableFormats = computed(() =>
+    props.allowOriginal
+        ? formats
+        : formats.filter((option) => option.value !== 'original'),
+);
 
 // Состояние открытия dropdown
-const isOpen = ref(false)
+const isOpen = ref(false);
 
 // Вычисляемое свойство: выбранный формат
 const selectedFormat = computed(() => {
-    return formats.find(f => f.value === format.value) || formats[0]
-})
+    return (
+        availableFormats.value.find((f) => f.value === format.value) ||
+        availableFormats.value[0]
+    );
+});
 
 // Безопасная установка формата
 const setFormat = (value: ImageFormat) => {
-    format.value = value
-    isOpen.value = false
-}
-
+    format.value = value;
+    isOpen.value = false;
+};
 </script>
 
 <template>
@@ -63,10 +80,10 @@ const setFormat = (value: ImageFormat) => {
         <button
             type="button"
             @click="isOpen = !isOpen"
-            class="w-full flex items-center justify-between px-4 py-3 bg-white border rounded-lg cursor-pointer transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="flex w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-4 py-3 transition-all hover:border-blue-400 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
             :class="{
                 'border-blue-500 ring-2 ring-blue-200': isOpen,
-                'border-gray-300': !isOpen
+                'border-gray-300': !isOpen,
             }"
         >
             <div class="flex items-center gap-3">
@@ -83,7 +100,7 @@ const setFormat = (value: ImageFormat) => {
 
             <!-- Стрелка -->
             <svg
-                class="w-5 h-5 text-gray-400 transition-transform"
+                class="h-5 w-5 text-gray-400 transition-transform"
                 :class="{ 'rotate-180': isOpen }"
                 fill="none"
                 stroke="currentColor"
@@ -109,26 +126,30 @@ const setFormat = (value: ImageFormat) => {
         >
             <div
                 v-if="isOpen"
-                class="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+                class="absolute z-10 mt-2 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg"
             >
                 <div class="max-h-64 overflow-y-auto">
                     <button
-                        v-for="option in formats"
+                        v-for="option in availableFormats"
                         :key="option.value"
                         type="button"
                         @click="setFormat(option.value)"
-                        class="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                        class="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
                         :class="{
-                            'bg-blue-50 border-l-4 border-blue-500': format === option.value,
-                            'border-l-4 border-transparent': format !== option.value
+                            'border-l-4 border-blue-500 bg-blue-50':
+                                format === option.value,
+                            'border-l-4 border-transparent':
+                                format !== option.value,
                         }"
                     >
-                        <span class="text-xl flex-shrink-0">{{ option.icon }}</span>
-                        <div class="flex-1 min-w-0">
+                        <span class="flex-shrink-0 text-xl">{{
+                            option.icon
+                        }}</span>
+                        <div class="min-w-0 flex-1">
                             <div class="font-medium text-gray-900">
                                 {{ option.label }}
                             </div>
-                            <div class="text-sm text-gray-600 mt-0.5">
+                            <div class="mt-0.5 text-sm text-gray-600">
                                 {{ option.description }}
                             </div>
                         </div>
@@ -136,7 +157,7 @@ const setFormat = (value: ImageFormat) => {
                         <!-- Галочка для выбранного элемента -->
                         <svg
                             v-if="format === option.value"
-                            class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
+                            class="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >

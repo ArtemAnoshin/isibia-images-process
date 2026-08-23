@@ -2,14 +2,14 @@
 
 namespace App\Services\ImageProcessing;
 
-use App\Services\ImageProcessing\DTOs\ProcessedImageDTO;
 use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
 use App\Services\ImageProcessing\DTOs\ImageProcessingResultDTO;
-use App\Services\ImageProcessing\Support\ProcessedImagesPathResolver;
+use App\Services\ImageProcessing\DTOs\ProcessedImageDTO;
 use App\Services\ImageProcessing\Processors\ResizeProcessor;
 use App\Services\ImageProcessing\Processors\ThumbnailsProcessor;
 use App\Services\ImageProcessing\Processors\WatermarkProcessor;
 use App\Services\ImageProcessing\Support\ProcessedImageFilenameGenerator;
+use App\Services\ImageProcessing\Support\ProcessedImagesPathResolver;
 use Intervention\Image\Laravel\Facades\Image;
 use ZipArchive;
 
@@ -21,8 +21,7 @@ class ImageProcessingService
         protected WatermarkProcessor $watermarkProcessor,
         protected ProcessedImagesPathResolver $pathResolver,
         protected ProcessedImageFilenameGenerator $filenameGenerator,
-    ) {
-    }
+    ) {}
 
     public function process(ImageProcessingRequestDTO $dto): ImageProcessingResultDTO
     {
@@ -78,15 +77,17 @@ class ImageProcessingService
                 );
             }
 
-            // 6. Сохранение основного изображения
-            $baseServerPath = $this->pathResolver->path($baseFileName);
-            $baseImage->save($baseServerPath, quality: $compression, format: $finalFormat);
+            // 6. Сохранение основного изображения, если оно требуется в результате
+            if ($dto->includeOriginal) {
+                $baseServerPath = $this->pathResolver->path($baseFileName);
+                $baseImage->save($baseServerPath, quality: $compression, format: $finalFormat);
 
-            $processedFiles[] = new ProcessedImageDTO(
-                filename: $baseFileName,
-                serverPath: $baseServerPath,
-                downloadUrl: $this->pathResolver->url($baseFileName),
-            );
+                $processedFiles[] = new ProcessedImageDTO(
+                    filename: $baseFileName,
+                    serverPath: $baseServerPath,
+                    downloadUrl: $this->pathResolver->url($baseFileName),
+                );
+            }
 
             // 7. Генерация миниатюр
             if ($dto->needsThumbnails()) {
@@ -144,10 +145,10 @@ class ImageProcessingService
         }
 
         // Создаем архив
-        $archiveName = date('Ymd_His') . '_processed_images.zip';
+        $archiveName = date('Ymd_His').'_processed_images.zip';
         $archivePath = $this->pathResolver->path($archiveName);
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $isOpen = $zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         if ($isOpen === true) {

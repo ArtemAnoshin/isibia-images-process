@@ -1,4 +1,5 @@
 <?php
+
 // app/Http/Controllers/PhotoController.php
 
 namespace App\Http\Controllers;
@@ -7,22 +8,55 @@ use App\Http\Requests\ProcessPhotosRequest;
 use App\Models\ProcessedFile;
 use App\Services\ImageProcessing\DTOs\ImageProcessingRequestDTO;
 use App\Services\ImageProcessing\ImageProcessingService;
-use App\Services\ModelManagers\ProcessedFile\ProcessedFileSaver;
 use App\Services\ModelManagers\ProcessedFile\ProcessedFileRepository;
+use App\Services\ModelManagers\ProcessedFile\ProcessedFileSaver;
 use App\Services\ModelManagers\User\DTOs\UserContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class PhotoController extends Controller
 {
     /**
      * Отображение формы обработки изображений
-     * @param ProcessedFileRepository $repository
-     * @return \Inertia\Response
+     *
+     * @return Response
      */
     public function index(Request $request, ProcessedFileRepository $repository)
     {
+        return $this->renderTool($request, $repository, 'batch');
+    }
+
+    /**
+     * Отображение инструмента оптимизации изображений для веба.
+     */
+    public function optimizer(Request $request, ProcessedFileRepository $repository)
+    {
+        return $this->renderTool($request, $repository, 'optimizer');
+    }
+
+    /**
+     * Отображение инструмента изменения формата изображений.
+     */
+    public function converter(Request $request, ProcessedFileRepository $repository)
+    {
+        return $this->renderTool($request, $repository, 'converter');
+    }
+
+    /**
+     * Отображение инструмента создания миниатюр.
+     */
+    public function thumbnails(Request $request, ProcessedFileRepository $repository)
+    {
+        return $this->renderTool($request, $repository, 'thumbnails');
+    }
+
+    private function renderTool(
+        Request $request,
+        ProcessedFileRepository $repository,
+        string $tool
+    ) {
         $userContext = UserContext::fromRequest($request);
 
         // Обработанные файлы пользователя
@@ -30,6 +64,7 @@ class PhotoController extends Controller
 
         return Inertia::render('ProcessPhotos/Form', [
             'files' => $files,
+            'tool' => $tool,
         ]);
     }
 
@@ -41,14 +76,14 @@ class PhotoController extends Controller
         ImageProcessingService $service,
         ProcessedFileSaver $processedFileSaver,
         ProcessedFileRepository $repository
-    )
-    {
+    ) {
         // Создаем контекст из запроса
         $userContext = UserContext::fromRequest($request);
+        $validated = $request->validated();
 
         // Создаем DTO для передачи данных в сервис - массив файлов, параметры обработки и идентификатор пользователя
         $dto = ImageProcessingRequestDTO::fromArray(
-            $request->validated(),
+            $validated,
             $userContext
         );
 
@@ -61,14 +96,21 @@ class PhotoController extends Controller
         // Получим все файлы пользователя
         $updatedFiles = $repository->filesForCurrentUser($userContext);
 
-        return to_route('process-photos.form')->with([
+        $redirectRoute = match ($validated['source'] ?? 'batch') {
+            'optimizer' => 'images.optimizer',
+            'converter' => 'images.converter',
+            'thumbnails' => 'images.thumbnails',
+            default => 'process-photos.form',
+        };
+
+        return to_route($redirectRoute)->with([
             'files' => $updatedFiles,
             'flash' => [
                 'success' => 'Файлы обработаны',
                 'processed' => [
                     'isArchive' => $result->isArchive,
                     'downloadUrl' => $result->downloadUrl,
-                ]
+                ],
             ],
         ]);
     }
@@ -149,11 +191,11 @@ class PhotoController extends Controller
 
         if ($context->isAuthorized() && $file->user_id == $context->userId) {
             $isOwner = true;
-        } elseif (!$context->isAuthorized() && $file->anonymous_id == $context->guestId) {
+        } elseif (! $context->isAuthorized() && $file->anonymous_id == $context->guestId) {
             $isOwner = true;
         }
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             abort(403, 'У вас нет прав на удаление этого файла.');
         }
     }
