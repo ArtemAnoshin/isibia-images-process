@@ -5,7 +5,6 @@ namespace App\Services\ModelManagers\ProcessedFile;
 use App\Models\ProcessedFile;
 use App\Services\ImageProcessing\DTOs\ImageProcessingResultDTO;
 use App\Services\ModelManagers\User\DTOs\UserContext;
-use Illuminate\Support\Facades\Auth;
 
 class ProcessedFileSaver
 {
@@ -25,8 +24,8 @@ class ProcessedFileSaver
             'type' => $isArchive ? ProcessedFile::TYPE_ARCHIVE : ProcessedFile::TYPE_SINGLE,
             'original_name' => $result->originalFileName,
             'path' => $result->downloadUrl,
-            'size' => null, // Размер можно вычислить позже, если нужно
-            'expires_at' => now()->addWeek(), // Срок хранения - неделя
+            'size' => $result->downloadSize,
+            'expires_at' => now()->addHours(config('filesystems.processed_files_ttl', 24)),
         ]);
     }
 }

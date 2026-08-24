@@ -74,8 +74,7 @@ class PhotoController extends Controller
     public function processPhotos(
         ProcessPhotosRequest $request,
         ImageProcessingService $service,
-        ProcessedFileSaver $processedFileSaver,
-        ProcessedFileRepository $repository
+        ProcessedFileSaver $processedFileSaver
     ) {
         // Создаем контекст из запроса
         $userContext = UserContext::fromRequest($request);
@@ -93,9 +92,6 @@ class PhotoController extends Controller
         // Сохранить в базу данных информацию о загруженных файлах
         $processedFileSaver->saveProcessedResult($result, $userContext);
 
-        // Получим все файлы пользователя
-        $updatedFiles = $repository->filesForCurrentUser($userContext);
-
         $redirectRoute = match ($validated['source'] ?? 'batch') {
             'optimizer' => 'images.optimizer',
             'converter' => 'images.converter',
@@ -103,16 +99,21 @@ class PhotoController extends Controller
             default => 'process-photos.form',
         };
 
-        return to_route($redirectRoute)->with([
-            'files' => $updatedFiles,
-            'flash' => [
-                'success' => 'Файлы обработаны',
-                'processed' => [
-                    'isArchive' => $result->isArchive,
-                    'downloadUrl' => $result->downloadUrl,
-                ],
-            ],
-        ]);
+        return to_route($redirectRoute)
+            ->with('success', 'Файлы обработаны')
+            ->with('processed', [
+                'isArchive' => $result->isArchive,
+                'downloadUrl' => $result->downloadUrl,
+                'originalSize' => $result->originalSize,
+                'processedSize' => $result->processedSize,
+                'downloadSize' => $result->downloadSize,
+                'fileCount' => count($result->files),
+                'files' => array_map(static fn ($file) => [
+                    'filename' => $file->filename,
+                    'url' => $file->downloadUrl,
+                    'size' => $file->size,
+                ], $result->files),
+            ]);
     }
 
     public function destroy(ProcessedFile $file, Request $request)
@@ -133,7 +134,7 @@ class PhotoController extends Controller
         $file->delete();
 
         // Возвращаем обновленный список
-        return $this->redirectWithUpdatedFiles($request);
+        return $this->redirectWithUpdatedFiles();
     }
 
     public function destroyAll(Request $request)
@@ -168,20 +169,13 @@ class PhotoController extends Controller
             }
         })->delete();
 
-        return $this->redirectWithUpdatedFiles($request);
+        return $this->redirectWithUpdatedFiles();
     }
 
-    private function redirectWithUpdatedFiles(Request $request)
+    private function redirectWithUpdatedFiles()
     {
-        $userContext = UserContext::fromRequest($request);
-        $repository = app()->make(ProcessedFileRepository::class);
-
-        return to_route('process-photos.form')->with([
-            'files' => $repository->filesForCurrentUser($userContext),
-            'flash' => [
-                'success' => 'Файлы успешно удалены',
-            ],
-        ]);
+        return to_route('process-photos.form')
+            ->with('success', 'Файлы успешно удалены');
     }
 
     private function authorizeDelete(ProcessedFile $file, UserContext $context): void

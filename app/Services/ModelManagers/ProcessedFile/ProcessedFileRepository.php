@@ -21,7 +21,7 @@ class ProcessedFileRepository
         // Фильтр активных файлов (не истек срок действия)
         $query->where(function ($q) {
             $q->whereNull('expires_at')
-            ->orWhere('expires_at', '>', now());
+                ->orWhere('expires_at', '>', now());
         });
 
         // Сортировка
@@ -34,7 +34,8 @@ class ProcessedFileRepository
                 'original_name' => $file->original_name,
                 'type' => $file->type,
                 'download_url' => $file->path,
-                'expires_at' => $file->expires_at,
+                'size' => $file->size ? $file->getFormattedSize() : null,
+                'created_at' => $file->created_at,
             ];
         });
     }

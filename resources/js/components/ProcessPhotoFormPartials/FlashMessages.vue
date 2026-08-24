@@ -1,69 +1,150 @@
-<!-- components/FlashMessages.vue -->
 <script setup lang="ts">
-import type { PageProps } from '@/types/files'
+import { computed } from 'vue';
+import type { PageProps } from '@/types/files';
 
-// Принимаем весь объект flash как пропс
-defineProps<{
-    flash: NonNullable<PageProps['flash']>
-}>()
+const props = defineProps<{
+    flash: NonNullable<PageProps['flash']>;
+}>();
+
+const result = computed(() => props.flash.processed);
+const savedBytes = computed(() =>
+    result.value ? result.value.originalSize - result.value.processedSize : 0,
+);
+const savingsPercent = computed(() => {
+    if (!result.value?.originalSize || savedBytes.value <= 0) return 0;
+
+    return Math.round((savedBytes.value / result.value.originalSize) * 100);
+});
+
+const formatBytes = (bytes: number): string => {
+    if (!bytes) return '0 Б';
+
+    const units = ['Б', 'КБ', 'МБ', 'ГБ'];
+    const index = Math.min(
+        Math.floor(Math.log(bytes) / Math.log(1024)),
+        units.length - 1,
+    );
+    const value = bytes / 1024 ** index;
+
+    return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+};
 </script>
 
 <template>
-    <!-- Текстовое уведомление об успехе -->
     <div
-        v-if="flash.success"
-        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
+        v-if="flash.success && !flash.processed"
+        class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800"
     >
         {{ flash.success }}
     </div>
 
-    <!-- Блок с результатами обработки -->
-    <div
-        v-if="flash.processed"
-        class="bg-white rounded-lg shadow-md p-6 mb-6"
+    <section
+        v-if="result"
+        class="mb-6 overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-lg"
+        aria-labelledby="processing-result-title"
     >
-        <h2 class="text-xl font-bold mb-4">Результат обработки</h2>
-
-        <!-- Основная кнопка скачивания -->
-        <div class="mb-4">
-            <a
-                :href="flash.processed.downloadUrl"
-                download
-                class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-            >
-                📥 Скачать результат
-            </a>
-        </div>
-
-        <!-- Логика отображения файлов -->
-        <div v-if="flash.processed.isArchive" class="flex items-center justify-between border rounded p-3 bg-blue-50">
+        <div
+            class="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white"
+        >
             <div>
-                <span class="font-medium">📦 Архив</span>
+                <p class="text-sm font-medium text-emerald-100">
+                    Обработка завершена
+                </p>
+                <h2 id="processing-result-title" class="text-2xl font-bold">
+                    Файлы готовы к скачиванию
+                </h2>
             </div>
-            <a
-                :href="flash.processed.downloadUrl"
-                download
-                class="text-blue-500 hover:underline font-medium"
+            <div
+                v-if="savingsPercent > 0"
+                class="rounded-full bg-white/15 px-4 py-2 font-semibold backdrop-blur"
             >
-                ⬇ Скачать архив
-            </a>
+                −{{ savingsPercent }}% объёма
+            </div>
         </div>
 
-        <div v-else class="space-y-2">
-            <div
-                v-for="file in flash.processed.files"
-                :key="file.filename"
-                class="flex items-center justify-between border rounded p-2 hover:bg-gray-50"
-            >
-                <span class="truncate mr-4">{{ file.filename }}</span>
-                <a
-                    :href="file.url"
-                    download
-                    class="text-blue-500 hover:underline whitespace-nowrap"
+        <div class="p-6">
+            <div class="grid gap-3 sm:grid-cols-3">
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p
+                        class="text-xs font-semibold tracking-wide text-slate-500 uppercase"
+                    >
+                        До обработки
+                    </p>
+                    <p class="mt-1 text-xl font-bold text-slate-900">
+                        {{ formatBytes(result.originalSize) }}
+                    </p>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p
+                        class="text-xs font-semibold tracking-wide text-slate-500 uppercase"
+                    >
+                        После обработки
+                    </p>
+                    <p class="mt-1 text-xl font-bold text-slate-900">
+                        {{ formatBytes(result.processedSize) }}
+                    </p>
+                </div>
+                <div
+                    class="rounded-xl p-4"
+                    :class="savedBytes > 0 ? 'bg-emerald-50' : 'bg-blue-50'"
                 >
-                    Скачать
+                    <p
+                        class="text-xs font-semibold tracking-wide uppercase"
+                        :class="
+                            savedBytes > 0
+                                ? 'text-emerald-700'
+                                : 'text-blue-700'
+                        "
+                    >
+                        {{ savedBytes > 0 ? 'Экономия' : 'Создано файлов' }}
+                    </p>
+                    <p
+                        class="mt-1 text-xl font-bold"
+                        :class="
+                            savedBytes > 0
+                                ? 'text-emerald-800'
+                                : 'text-blue-800'
+                        "
+                    >
+                        {{
+                            savedBytes > 0
+                                ? formatBytes(savedBytes)
+                                : result.fileCount
+                        }}
+                    </p>
+                </div>
+            </div>
+
+            <div
+                class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 p-4"
+            >
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">{{
+                        result.isArchive ? '📦' : '🖼️'
+                    }}</span>
+                    <div>
+                        <p class="font-semibold text-slate-900">
+                            {{
+                                result.isArchive
+                                    ? `ZIP-архив · ${result.fileCount} файлов`
+                                    : result.files[0]?.filename
+                            }}
+                        </p>
+                        <p class="text-sm text-slate-500">
+                            Размер загрузки:
+                            {{ formatBytes(result.downloadSize) }}
+                        </p>
+                    </div>
+                </div>
+                <a
+                    :href="result.downloadUrl"
+                    download
+                    class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                >
+                    <span>⬇</span>
+                    {{ result.isArchive ? 'Скачать ZIP' : 'Скачать файл' }}
                 </a>
             </div>
         </div>
-    </div>
+    </section>
 </template>

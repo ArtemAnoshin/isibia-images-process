@@ -1,25 +1,29 @@
 <script setup lang="ts">
-import type { ProcessedFile } from '@/types/files'
+import type { ProcessedFile } from '@/types/files';
 
-withDefaults(defineProps<{
-    processedFiles: ProcessedFile[]
-}>(), {
-    processedFiles: () => [],
-})
+withDefaults(
+    defineProps<{
+        processedFiles: ProcessedFile[];
+    }>(),
+    {
+        processedFiles: () => [],
+    },
+);
 
 // Методы
 const emit = defineEmits(['delete', 'deleteAll']);
 
-const formatDate = (date: string | null) => {
+const formatDate = (date: string) => {
     if (!date) {
         return '';
     }
 
     return new Date(date).toLocaleString('ru-RU', {
-        day: '2-digit',
+        day: 'numeric',
         month: '2-digit',
+        year: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
     });
 };
 
@@ -43,90 +47,103 @@ const deleteAll = () => {
 </style>
 
 <template>
-    <div class="file-list">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="font-medium text-gray-700">
-                Ваши обработанные файлы
-                <span v-if="processedFiles.length" class="text-sm text-gray-400 ml-2">
-                    ({{ processedFiles.length }})
-                </span>
-            </h3>
-
-            <button
-                v-if="processedFiles.length > 0"
-                @click="deleteAll"
-                class="text-sm text-red-600 hover:text-red-800 transition"
+    <section
+        class="file-list rounded-2xl border border-slate-200 bg-slate-50 p-5"
+    >
+        <div class="mb-4 flex items-center justify-between gap-4">
+            <div>
+                <h3 class="font-semibold text-slate-900">
+                    Недавние результаты
+                </h3>
+                <p class="mt-1 text-xs text-slate-500">
+                    Файлы хранятся временно и очищаются автоматически
+                </p>
+            </div>
+            <span
+                v-if="processedFiles.length"
+                class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500"
             >
-                🗑 Удалить всё
-            </button>
+                {{ processedFiles.length }}
+            </span>
         </div>
 
         <!-- Если файлов нет -->
-        <div v-if="!processedFiles.length" class="text-center py-8 border-2 border-dashed rounded-lg">
-            <div class="text-4xl mb-2">📭</div>
+        <div
+            v-if="!processedFiles.length"
+            class="rounded-xl border-2 border-dashed border-slate-200 bg-white py-8 text-center"
+        >
+            <div class="mb-2 text-4xl">📭</div>
             <p class="text-gray-500">Нет обработанных файлов</p>
-            <p class="text-sm text-gray-400 mt-1">Загрузите изображения и обработайте их</p>
+            <p class="mt-1 text-sm text-gray-400">
+                Загрузите изображения и обработайте их
+            </p>
         </div>
 
         <!-- Список файлов -->
-        <div v-else class="space-y-2">
+        <div v-else class="space-y-3">
             <div
                 v-for="file in processedFiles"
                 :key="file.id"
-                class="flex items-center justify-between border rounded-lg p-3 bg-white hover:shadow-sm transition"
+                class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
             >
                 <!-- Левая часть: иконка и информация -->
-                <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <span class="text-2xl flex-shrink-0">
-                        {{ file.is_archive ? '📦' : '📄' }}
+                <div class="flex min-w-0 flex-1 items-center gap-3">
+                    <span class="flex-shrink-0 text-2xl">
+                        {{ file.type === 'archive' ? '📦' : '🖼️' }}
                     </span>
 
                     <div class="min-w-0 flex-1">
-                        <div class="truncate font-medium text-gray-800" :title="file.original_name">
+                        <div
+                            class="truncate font-medium text-gray-800"
+                            :title="file.original_name"
+                        >
                             {{ file.original_name }}
                         </div>
-                        <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                            <span v-if="file.is_archive">
-                                Архив • {{ file.file_count }} файлов
-                            </span>
-                            <span v-else>
-                                Файл
-                            </span>
+                        <div
+                            class="flex flex-wrap items-center gap-2 text-xs text-gray-500"
+                        >
+                            <span>{{
+                                file.type === 'archive'
+                                    ? 'ZIP-архив'
+                                    : 'Изображение'
+                            }}</span>
 
                             <span v-if="file.size" class="text-gray-400">
                                 • {{ file.size }}
                             </span>
 
-                            <span class="text-gray-400">
-                                • до {{ formatDate(file.expires_at) }}
-                            </span>
-
-                            <span v-if="!file.is_available" class="text-red-500">
-                                • ❌ Просрочен
-                            </span>
+                            <span class="text-gray-400"
+                                >• {{ formatDate(file.created_at) }}</span
+                            >
                         </div>
                     </div>
                 </div>
 
                 <!-- Правая часть: кнопки действий -->
-                <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                <div class="ml-4 flex flex-shrink-0 items-center gap-2">
                     <a
                         :href="file.download_url"
                         download
-                        class="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-1"
+                        class="flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
                     >
                         ⬇ Скачать
                     </a>
 
                     <button
                         @click="deleteFile(file.id)"
-                        class="text-gray-400 hover:text-red-600 transition p-1"
+                        class="p-1 text-gray-400 transition hover:text-red-600"
                         title="Удалить"
                     >
                         ✕
                     </button>
                 </div>
             </div>
+            <button
+                @click="deleteAll"
+                class="mt-4 text-sm text-slate-500 transition hover:text-red-600"
+            >
+                Очистить список и удалить все файлы
+            </button>
         </div>
-    </div>
+    </section>
 </template>

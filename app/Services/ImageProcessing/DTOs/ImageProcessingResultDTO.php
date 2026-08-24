@@ -9,6 +9,8 @@ class ImageProcessingResultDTO
         public readonly string $downloadUrl,
         public readonly string $originalFileName,
         public readonly array $files = [],
-    ) {
-    }
+        public readonly int $originalSize = 0,
+        public readonly int $processedSize = 0,
+        public readonly int $downloadSize = 0,
+    ) {}
 }

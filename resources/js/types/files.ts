@@ -3,11 +3,8 @@ export interface ProcessedFile {
     original_name: string;
     type: string;
     download_url: string;
-    expires_at: string | null;
-    is_archive?: boolean;
-    file_count?: number;
+    created_at: string;
     size?: string | number;
-    is_available?: boolean;
 }
 
 export interface PageProps extends Record<string, any> {
@@ -17,9 +14,14 @@ export interface PageProps extends Record<string, any> {
         processed?: {
             isArchive: boolean;
             downloadUrl: string;
+            originalSize: number;
+            processedSize: number;
+            downloadSize: number;
+            fileCount: number;
             files: {
                 filename: string;
                 url: string;
+                size: number;
             }[];
         };
     };

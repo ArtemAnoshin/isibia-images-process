@@ -8,6 +8,6 @@ class ProcessedImageDTO
         public readonly string $filename,
         public readonly string $serverPath,
         public readonly string $downloadUrl,
-    ) {
-    }
+        public readonly int $size,
+    ) {}
 }

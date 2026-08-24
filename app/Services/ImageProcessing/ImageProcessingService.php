@@ -27,6 +27,10 @@ class ImageProcessingService
     {
         $processedFiles = [];
         $compression = $dto->compression ? 80 : 100;
+        $originalSize = array_sum(array_map(
+            static fn ($file): int => (int) $file->getSize(),
+            $dto->files,
+        ));
 
         // Подготовка окружения
         $this->setUserDirectory($dto);
@@ -86,6 +90,7 @@ class ImageProcessingService
                     filename: $baseFileName,
                     serverPath: $baseServerPath,
                     downloadUrl: $this->pathResolver->url($baseFileName),
+                    size: (int) filesize($baseServerPath),
                 );
             }
 
@@ -119,6 +124,7 @@ class ImageProcessingService
                         filename: $thumbName,
                         serverPath: $thumbPath,
                         downloadUrl: $this->pathResolver->url($thumbName),
+                        size: (int) filesize($thumbPath),
                     );
                 }
             }
@@ -128,19 +134,27 @@ class ImageProcessingService
         }
 
         // 8. Создание архива (если нужно)
-        $result = $this->prepareResult($processedFiles);
+        $result = $this->prepareResult($processedFiles, $originalSize);
 
         return $result;
     }
 
-    private function prepareResult(array $processedFiles): ImageProcessingResultDTO
+    private function prepareResult(array $processedFiles, int $originalSize): ImageProcessingResultDTO
     {
+        $processedSize = array_sum(array_map(
+            static fn (ProcessedImageDTO $file): int => $file->size,
+            $processedFiles,
+        ));
+
         if (count($processedFiles) === 1) {
             return new ImageProcessingResultDTO(
                 isArchive: false,
                 downloadUrl: $processedFiles[0]->downloadUrl,
                 originalFileName: $processedFiles[0]->filename,
                 files: $processedFiles,
+                originalSize: $originalSize,
+                processedSize: $processedSize,
+                downloadSize: $processedFiles[0]->size,
             );
         }
 
@@ -164,6 +178,9 @@ class ImageProcessingService
                 downloadUrl: $this->pathResolver->url($archiveName),
                 originalFileName: $archiveName,
                 files: $processedFiles,
+                originalSize: $originalSize,
+                processedSize: $processedSize,
+                downloadSize: (int) filesize($archivePath),
             );
         }
 
