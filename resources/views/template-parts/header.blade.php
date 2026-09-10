@@ -12,7 +12,7 @@
 
         <nav aria-label="Основная навигация" class="flex items-center gap-5 text-sm">
             @include('pages.partials.tools-dropdown')
-            <a href="#processor" class="hover:text-violet-300">Инструмент</a>
+
             <a href="#features" class="hidden hover:text-violet-300 sm:inline">Возможности</a>
             <a href="#faq" class="hidden hover:text-violet-300 sm:inline">Вопросы</a>
             <a href="{{ route('about-developer-page') }}" class="hover:text-violet-300">О разработчике</a>

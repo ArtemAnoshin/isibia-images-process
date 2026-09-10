@@ -65,7 +65,7 @@ class PhotoController extends Controller
         return Inertia::render('ProcessPhotos/Form', [
             'files' => $files,
             'tool' => $tool,
-        ])->rootView('pages.frontpage');
+        ])->rootView('pages.' . $tool);
     }
 
     /**
