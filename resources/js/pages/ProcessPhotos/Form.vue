@@ -27,7 +27,7 @@ const formTitle = computed(() =>
         : tool.value === 'converter'
           ? false
           : tool.value === 'thumbnails'
-            ? 'Создание миниатюр изображений'
+            ? false
             : 'Настройки обработки фотографий',
 );
 const formDescription = computed(() =>
