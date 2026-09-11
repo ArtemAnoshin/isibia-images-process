@@ -15,7 +15,7 @@
 
         @if (!Route::is('images.optimizer'))
             <a href="{{ route('images.optimizer') }}" class="block rounded-lg px-4 py-3 hover:bg-white/10 hover:text-violet-200">
-                <strong class="block">Оптимизировать для веба</strong>
+                <strong class="block">Оптимизировать для сайта</strong>
                 <span class="mt-1 block text-xs font-normal text-slate-400">Сжатие и размер до 1920×1080</span>
             </a>
         @endif

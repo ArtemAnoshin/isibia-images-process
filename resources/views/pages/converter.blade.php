@@ -1,7 +1,7 @@
 @extends('app')
 
 @section('head')
-    <title inertia>Конвертер изображений онлайн — JPG, PNG и WebP | Isibia</title>
+    <title>Конвертер изображений онлайн — JPG, PNG и WebP | Isibia</title>
     <meta name="description" content="Изменяйте формат изображений онлайн пакетно. Конвертируйте несколько файлов в JPEG, PNG или WebP без установки программ.">
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="{{ route('images.converter') }}">

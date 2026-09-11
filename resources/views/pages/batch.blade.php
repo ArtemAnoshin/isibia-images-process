@@ -1,7 +1,7 @@
 @extends('app')
 
 @section('head')
-    <title inertia>Пакетная обработка фото онлайн бесплатно | Isibia</title>
+    <title>Пакетная обработка фото онлайн бесплатно | Isibia</title>
     <meta name="description" content="Бесплатная пакетная обработка фото онлайн. Изменяйте размер, конвертируйте в JPG, PNG и WebP, создавайте миниатюры за один запуск в Isibia.">
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="{{ url('/') }}">

@@ -1,7 +1,7 @@
 @extends('app')
 
 @section('head')
-    <title inertia>Создать миниатюры изображений онлайн | Isibia</title>
+    <title>Создать миниатюры изображений онлайн | Isibia</title>
     <meta name="description" content="Создавайте миниатюры изображений онлайн пакетно. Укажите до пяти вариантов ширины и высоты и получите готовые уменьшенные копии JPG, PNG или WebP.">
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="{{ route('images.thumbnails') }}">

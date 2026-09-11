@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm, usePage, router } from '@inertiajs/vue3';
+import { useForm, usePage, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import FlashMessages from '@/components/ProcessPhotoFormPartials/FlashMessages.vue';
 import ImageCompressionSetting from '@/components/ProcessPhotoFormPartials/ImageCompressionSetting.vue';
@@ -20,18 +20,10 @@ const tool = computed(() => page.props.tool ?? 'batch');
 const isBatchTool = computed(() => tool.value === 'batch');
 const isConverterTool = computed(() => tool.value === 'converter');
 const isThumbnailsTool = computed(() => tool.value === 'thumbnails');
-const pageTitle = computed(() =>
-    tool.value === 'optimizer'
-        ? 'Оптимизация изображений для сайта онлайн'
-        : tool.value === 'converter'
-          ? 'Конвертер изображений онлайн — JPG, PNG и WebP'
-          : tool.value === 'thumbnails'
-            ? 'Создать миниатюры изображений онлайн'
-            : 'Пакетная обработка изображений онлайн — JPG, PNG, WebP',
-);
+
 const formTitle = computed(() =>
     tool.value === 'optimizer'
-        ? 'Оптимизация изображений для веба'
+        ? false
         : tool.value === 'converter'
           ? 'Изменение формата изображений'
           : tool.value === 'thumbnails'
@@ -185,13 +177,11 @@ const deleteAllFiles = () => {
 </script>
 
 <template>
-    <Head :title="pageTitle" />
-
     <AppLayout>
         <div class="container mx-auto px-4 py-8">
             <div class="mx-auto max-w-4xl">
                 <!-- Заголовок -->
-                <div class="mb-6 rounded-lg bg-white p-6 shadow-md">
+                <div class="mb-6 rounded-lg bg-white p-6 shadow-md" v-if="formTitle">
                     <div
                         class="flex flex-wrap items-center justify-between gap-4"
                     >
